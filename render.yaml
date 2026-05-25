@@ -1,0 +1,39 @@
+# Render Blueprint — deploys the analysis-app backend on the free tier.
+# https://render.com/docs/blueprint-spec
+#
+# Usage:
+#   1. Push this repo to GitHub.
+#   2. On Render → New → Blueprint → connect this repo.
+#   3. Fill the prompted secret values (DB_* + JWT_SECRET).
+#   4. Render builds and starts the service automatically.
+
+services:
+  - type: web
+    name: windikate-api
+    runtime: node
+    plan: free
+    rootDir: analysis-app/backend
+    buildCommand: npm install
+    startCommand: node server.js
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 4000
+      - key: ALLOWED_ORIGIN
+        sync: false               # set to the Vercel frontend URL
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_EXPIRES_IN
+        value: 7d
+      - key: DB_HOST
+        sync: false               # TiDB Cloud / PlanetScale / Aiven host
+      - key: DB_PORT
+        sync: false               # 4000 for TiDB, 3306 elsewhere
+      - key: DB_USER
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: DB_NAME
+        value: windikate_analysis

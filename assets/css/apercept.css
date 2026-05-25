@@ -1,0 +1,178 @@
+/* ===============================================
+   Apercept AI — Page-specific styles
+   =============================================== */
+
+/* Grid background overlay */
+.bg-grid {
+    background-image:
+        linear-gradient(rgba(255, 255, 255, 0.7) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.7) 1px, transparent 1px);
+    background-size: 44px 44px;
+}
+
+/* ----------- Simulation stage ----------- */
+.sim-stage {
+    min-height: 480px;
+}
+
+@media (min-width: 1024px) {
+    .sim-stage {
+        min-height: 560px;
+    }
+}
+
+/* Connection line draw-in */
+.sim-line {
+    stroke-dasharray: 240;
+    stroke-dashoffset: 240;
+    animation: drawLine 2.4s ease forwards;
+}
+
+@keyframes drawLine {
+    to { stroke-dashoffset: 0; }
+}
+
+/* Floating persona nodes */
+.persona-node {
+    animation: nodeFloat 5s ease-in-out infinite;
+}
+
+@keyframes nodeFloat {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+}
+
+/* ----------- Simulation Outputs cards ----------- */
+.output-card {
+    position: relative;
+    padding: 26px 24px;
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.02);
+    transition: transform 0.35s ease, border-color 0.35s ease, background 0.35s ease;
+    overflow: hidden;
+}
+
+.output-card::before {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    border-radius: 20px;
+    padding: 1px;
+    background: linear-gradient(135deg, rgba(139, 92, 246, 0.5), transparent 40%);
+    -webkit-mask:
+        linear-gradient(#fff 0 0) content-box,
+        linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+            mask-composite: exclude;
+    opacity: 0;
+    transition: opacity 0.35s ease;
+    pointer-events: none;
+}
+
+.output-card:hover {
+    transform: translateY(-4px);
+    border-color: rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.035);
+}
+
+.output-card:hover::before {
+    opacity: 1;
+}
+
+.output-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    border: 1px solid;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    margin-bottom: 18px;
+}
+
+.output-title {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 6px;
+    letter-spacing: -0.01em;
+}
+
+.output-desc {
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.55);
+    line-height: 1.55;
+}
+
+.output-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 18px;
+    padding-top: 16px;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.4);
+}
+
+.output-meta .dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 999px;
+    display: inline-block;
+}
+
+/* ----------- Use case cards ----------- */
+.use-card {
+    padding: 28px;
+    border-radius: 22px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.025), rgba(255, 255, 255, 0.005));
+    transition: transform 0.35s ease, border-color 0.35s ease;
+}
+
+.use-card:hover {
+    transform: translateY(-4px);
+    border-color: rgba(139, 92, 246, 0.3);
+}
+
+/* ----------- Research module rows ----------- */
+.research-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    transition: background 0.25s ease;
+}
+
+.research-row:hover {
+    background: rgba(255, 255, 255, 0.04);
+}
+
+/* ----------- Vision cards ----------- */
+.vision-card {
+    padding: 22px;
+    border-radius: 18px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.02);
+    transition: transform 0.35s ease, border-color 0.35s ease, background 0.35s ease;
+}
+
+.vision-card:hover {
+    transform: translateY(-3px);
+    border-color: rgba(139, 92, 246, 0.3);
+    background: rgba(255, 255, 255, 0.035);
+}
+
+/* ----------- Responsive tweaks ----------- */
+@media (max-width: 640px) {
+    .sim-stage .persona-node > div {
+        transform: scale(0.85);
+        transform-origin: top left;
+    }
+}

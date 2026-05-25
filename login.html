@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="assets/js/head.js"></script>
+    <script>document.write(pageHead('Log in — Windikate', 'Sign in to your Windikate workspace.'))</script>
+</head>
+<body class="bg-ink-950 text-white font-sans antialiased overflow-x-hidden min-h-screen flex flex-col">
+
+    <script src="assets/js/chrome.js"></script>
+    <script>document.write(backgroundLayers())</script>
+    <script>document.write(navHtml(''))</script>
+
+    <main class="flex-1 flex items-center justify-center px-6 py-12">
+        <div class="w-full max-w-md" data-aos="fade-up">
+            <div class="text-center mb-8">
+                <h1 class="text-[32px] sm:text-[38px] font-bold tracking-tight">Welcome back.</h1>
+                <p class="mt-2 text-white/55">Sign in to your workspace</p>
+            </div>
+
+            <div class="rounded-2xl border border-white/10 bg-gradient-to-br from-ink-800/80 to-ink-900/80 backdrop-blur-xl p-7 shadow-card">
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <button class="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/15 text-sm font-medium transition-colors">
+                        <i class="bi bi-google"></i>Google
+                    </button>
+                    <button class="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/15 text-sm font-medium transition-colors">
+                        <i class="bi bi-microsoft"></i>Microsoft
+                    </button>
+                </div>
+
+                <div class="flex items-center gap-3 my-6">
+                    <span class="flex-1 h-px bg-white/10"></span>
+                    <span class="text-[11px] font-mono text-white/40 uppercase tracking-wider">or with email</span>
+                    <span class="flex-1 h-px bg-white/10"></span>
+                </div>
+
+                <form data-form="login" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-medium text-white/60 mb-1.5">Email</label>
+                        <input type="email" required placeholder="you@fund.vc" class="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/15 focus:border-brand-500 focus:outline-none text-white placeholder:text-white/40" />
+                    </div>
+                    <div>
+                        <div class="flex items-center justify-between mb-1.5">
+                            <label class="block text-xs font-medium text-white/60">Password</label>
+                            <a href="#" class="text-xs text-brand-300 hover:text-brand-200">Forgot?</a>
+                        </div>
+                        <input type="password" required minlength="8" placeholder="••••••••" class="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/15 focus:border-brand-500 focus:outline-none text-white placeholder:text-white/40" />
+                    </div>
+                    <label class="flex items-center gap-2 text-sm text-white/65 cursor-pointer">
+                        <input type="checkbox" class="accent-brand-500 w-4 h-4" />
+                        Keep me signed in
+                    </label>
+                    <button type="submit" class="w-full inline-flex items-center justify-center gap-2 bg-brand-600 hover:bg-brand-500 text-white font-medium px-5 py-3 rounded-xl shadow-glow transition-all">Sign in<i class="bi bi-arrow-right"></i></button>
+                    <div data-success class="hidden p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-sm flex items-center gap-2"><i class="bi bi-check2-circle"></i>Signed in. Redirecting to your workspace…</div>
+                </form>
+            </div>
+
+            <p class="text-center text-sm text-white/55 mt-6">Don't have an account? <a href="demo.html" class="text-brand-300 hover:text-brand-200 font-medium">Book a demo →</a></p>
+
+            <div class="mt-8 flex items-center justify-center gap-2 text-[11px] font-mono text-white/40">
+                <i class="bi bi-shield-lock"></i>SOC 2 Type II · SSO available on Enterprise
+            </div>
+        </div>
+    </main>
+
+    <script>document.write(footerHtml())</script>
+    <script>document.write(pageScripts())</script>
+</body>
+</html>

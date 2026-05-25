@@ -1,0 +1,27 @@
+# Dependencies
+node_modules/
+
+# Build output
+.next/
+out/
+dist/
+build/
+
+# Environment files
+.env
+.env.local
+.env*.local
+
+# Uploaded files (decks, financials)
+analysis-app/backend/uploads/*
+!analysis-app/backend/uploads/.gitkeep
+
+# Logs and OS junk
+*.log
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+*.swp
