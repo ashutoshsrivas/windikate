@@ -39,7 +39,15 @@
 
     <script>
         document.getElementById('proj-count').textContent = PROJECTS.length;
-        document.getElementById('project-grid').innerHTML = PROJECTS.map(p => workCardHtml(p, false)).join('');
+        document.getElementById('project-grid').innerHTML = PROJECTS.map((p, i) => workCardHtml(p, false, i + 1)).join('');
+        /* The first six are above the fold on most screens — load eagerly
+           so the user isn't staring at fallback titles when the page reveals. */
+        document.querySelectorAll('#project-grid .work-card').forEach((card, i) => {
+            if (i < 6) {
+                const img = card.querySelector('img');
+                if (img) { img.loading = 'eager'; img.fetchPriority = 'high'; }
+            }
+        });
     </script>
 
     <!-- ============================ INDEX TABLE ============================ -->

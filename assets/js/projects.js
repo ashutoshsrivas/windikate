@@ -160,20 +160,34 @@ const CAT_LABEL = {
     portfolio:  'Portfolio'
 };
 
-/* Generates a thum.io URL for any project. Adds a no-animate flag + a
-   cached-for-7-days flag for snappy second loads. */
-function projectScreenshot(url, w = 1200, h = 750) {
+/* Generates a thum.io URL for any project. Smaller width keeps each
+   render fast; thum.io caches for 7 days via maxAge. */
+function projectScreenshot(url, w = 900, h = 560) {
     const clean = url.replace(/^https?:\/\//, '');
     return `https://image.thum.io/get/width/${w}/crop/${h}/noanimate/maxAge/168/https://${clean}`;
 }
 
 /* Build a single work-card HTML block. featured=true uses a tall layout. */
-function workCardHtml(p, featured = false) {
+function workCardHtml(p, featured = false, indexHint = null) {
     const screenshotUrl = p.external ? null : projectScreenshot(p.url);
-    const aspect = featured ? 'aspect-[16/11]' : 'aspect-[16/10]';
-    const mediaInner = screenshotUrl
-        ? `<img src="${screenshotUrl}" alt="${p.title} screenshot" loading="lazy" decoding="async" referrerpolicy="no-referrer" data-fade onerror="this.classList.add('is-loaded');this.style.display='none'" />`
-        : `<div class="flex items-center justify-center w-full h-full relative z-[1]"><i class="bi bi-film text-5xl text-ink-300"></i></div>`;
+    const aspect        = featured ? 'aspect-[16/11]' : 'aspect-[16/10]';
+
+    /* Typographic fallback — always rendered, behind the image.
+       If the screenshot never loads, the card stays meaningful. */
+    const fallback = `
+        <div class="work-card__fallback">
+            <div class="work-card__fallback-meta">
+                <span>${CAT_LABEL[p.cat] || p.category}</span>
+                <span class="dot"></span>
+                <span>${p.year}</span>
+                ${indexHint != null ? `<span class="dot"></span><span>${String(indexHint).padStart(2,'0')}</span>` : ''}
+            </div>
+            <div class="work-card__fallback-title">${p.title}</div>
+        </div>`;
+
+    const image = screenshotUrl
+        ? `<img src="${screenshotUrl}" alt="${p.title} screenshot" loading="lazy" decoding="async" referrerpolicy="no-referrer" data-fade onerror="this.remove()" />`
+        : '';
 
     const backendChip = p.backend
         ? `<a href="${p.backend}" target="_blank" rel="noreferrer" class="cat-chip hover:bg-ink-900 hover:text-paper-100 transition-colors" onclick="event.stopPropagation()"><i class="bi bi-database"></i>Backend</a>`
@@ -181,8 +195,9 @@ function workCardHtml(p, featured = false) {
 
     return `
     <a href="${p.url}" target="_blank" rel="noreferrer" data-cat="${p.cat}" class="work-card block group">
-        <div class="work-card__media ${aspect}" style="background-color: ${p.accent}">
-            ${mediaInner}
+        <div class="work-card__media ${aspect}" style="--accent: ${p.accent}">
+            ${fallback}
+            ${image}
             <div class="work-card__overlay">
                 <div class="text-xs font-mono uppercase tracking-wider opacity-80">${p.services.join(' · ')}</div>
                 <div class="mt-2 text-base font-medium flex items-center gap-2">Visit site<i class="bi bi-arrow-up-right"></i></div>

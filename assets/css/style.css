@@ -168,26 +168,54 @@ body::before {
 
 .work-card__media {
     position: relative; aspect-ratio: 16 / 10; overflow: hidden;
-    background: linear-gradient(135deg, #ede9fe, #f3efe5);
+    background-color: var(--accent, #f3efe5);
 }
+
+/* Typographic fallback layer — always rendered underneath the screenshot,
+   so a missing or slow thum.io image never leaves a card looking empty. */
+.work-card__fallback {
+    position: absolute; inset: 0; z-index: 0;
+    padding: 24px 26px;
+    display: flex; flex-direction: column; justify-content: space-between;
+    color: #0c0a09; pointer-events: none;
+}
+.work-card__fallback-meta {
+    font: 500 10px/1 'JetBrains Mono', ui-monospace, monospace;
+    letter-spacing: 0.2em; text-transform: uppercase;
+    opacity: 0.55;
+    display: flex; gap: 12px; align-items: center;
+}
+.work-card__fallback-meta .dot { width: 4px; height: 4px; border-radius: 999px; background: currentColor; opacity: 0.7; }
+.work-card__fallback-title {
+    font-family: 'Fraunces', ui-serif, serif;
+    font-weight: 500;
+    font-size: clamp(26px, 2.4vw, 38px);
+    line-height: 1.02; letter-spacing: -0.02em;
+    margin-top: auto;
+    max-width: 90%;
+}
+.work-card__fallback-icon {
+    font-size: 26px; opacity: 0.5;
+}
+
 .work-card__media img {
-    width: 100%; height: 100%; object-fit: cover; object-position: top center;
+    position: absolute; inset: 0; z-index: 1;
+    width: 100%; height: 100%;
+    object-fit: cover; object-position: top center;
     transition: transform 1.2s cubic-bezier(.2,.7,.2,1), opacity .8s cubic-bezier(.5,0,.2,1);
     opacity: 0;
 }
 .work-card__media img.is-loaded { opacity: 1; }
 .work-card:hover .work-card__media img.is-loaded { transform: scale(1.05); }
-.work-card__media::before {
-    content: '';
-    position: absolute; inset: 0;
-    background: linear-gradient(110deg, transparent 30%, rgba(255,255,255,0.45) 50%, transparent 70%);
-    background-size: 220% 100%;
-    animation: shimmer 1.8s linear infinite;
-    pointer-events: none; z-index: 0;
-    opacity: 0.7; transition: opacity .6s ease;
+
+/* When the image hasn't loaded yet, keep a subtle breathing shimmer.
+   The :has() check disables it the moment an image lands. */
+.work-card__media::after {
+    content: ''; position: absolute; inset: 0; z-index: 2;
+    background: linear-gradient(180deg, transparent 55%, rgba(12,10,9,0.30) 100%);
+    opacity: 0; transition: opacity .4s ease; pointer-events: none;
 }
-.work-card__media:has(img.is-loaded)::before { opacity: 0; animation: none; }
-@keyframes shimmer { 0% { background-position: -120% 0; } 100% { background-position: 220% 0; } }
+.work-card:hover .work-card__media::after { opacity: 1; }
 .work-card__media::after {
     content: ''; position: absolute; inset: 0;
     background: linear-gradient(180deg, transparent 50%, rgba(12,10,9,0.35) 100%);
@@ -199,7 +227,7 @@ body::before {
     position: absolute; left: 20px; right: 20px; bottom: 20px;
     transform: translateY(8px); opacity: 0;
     transition: transform .4s ease, opacity .4s ease;
-    color: #fff; z-index: 2;
+    color: #fff; z-index: 3;
 }
 .work-card:hover .work-card__overlay { transform: translateY(0); opacity: 1; }
 

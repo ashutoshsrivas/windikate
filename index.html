@@ -80,8 +80,10 @@
         <script>
             // Feature 4 of the strongest, varied projects on the homepage
             const featured = ['covahive', 'pinnacle-square', 'kasa-heavens', 'twizzle-media-house'];
-            const out = featured.map(slug => PROJECTS.find(p => p.slug === slug)).filter(Boolean).map(p => workCardHtml(p, true)).join('');
+            const out = featured.map(slug => PROJECTS.find(p => p.slug === slug)).filter(Boolean).map((p, i) => workCardHtml(p, true, i + 1)).join('');
             document.getElementById('selected-work').innerHTML = out;
+            /* Homepage cards are always above the fold — load all eagerly. */
+            document.querySelectorAll('#selected-work img').forEach(img => { img.loading = 'eager'; img.fetchPriority = 'high'; });
         </script>
     </section>
 
