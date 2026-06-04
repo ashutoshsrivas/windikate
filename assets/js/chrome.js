@@ -1,79 +1,53 @@
-/* ===============================================
-   Windikate — Shared chrome (nav, footer, background)
-   Injected via document.write so there is no FOUC.
-   =============================================== */
+/* ============================================================
+   Windikate · Studio
+   Shared chrome (nav + footer + background helpers)
+   Emitted via document.write to keep every page DRY.
+   ============================================================ */
 
 const NAV_LINKS = [
-    { key: 'product', label: 'Product', href: 'product.html' },
-    { key: 'apercept', label: 'Apercept AI', href: 'apercept.html' },
-    { key: 'customers', label: 'Customers', href: 'customers.html' },
-    { key: 'pricing', label: 'Pricing', href: 'pricing.html' },
-    { key: 'resources', label: 'Resources', href: 'resources.html', dropdown: true }
-];
-
-const RESOURCE_LINKS = [
-    { label: 'Blog', href: 'resources.html#blog' },
-    { label: 'Case Studies', href: 'customers.html#cases' },
-    { label: 'Documentation', href: 'resources.html#docs' },
-    { label: 'Help Center', href: 'resources.html#help' }
+    { key: 'work',     label: 'Work',     href: 'work.html' },
+    { key: 'products', label: 'Products', href: 'products.html' },
+    { key: 'studio',   label: 'Studio',   href: 'about.html' },
+    { key: 'journal',  label: 'Journal',  href: 'resources.html' }
 ];
 
 function backgroundLayers() {
-    return `
-    <div class="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
-        <div class="absolute -top-40 -left-40 w-[500px] h-[500px] rounded-full bg-brand-700/20 blur-[120px]"></div>
-        <div class="absolute top-1/3 right-0 w-[600px] h-[600px] rounded-full bg-brand-600/15 blur-[140px]"></div>
-        <div class="absolute bottom-0 left-1/4 w-[400px] h-[400px] rounded-full bg-violet-900/20 blur-[100px]"></div>
-    </div>
-    <div class="pointer-events-none fixed inset-0 -z-10 opacity-[0.04] bg-grid"></div>`;
+    /* Light theme has no orbs — the paper texture lives on body::before. */
+    return '';
 }
 
 function navHtml(activeKey) {
     const desktop = NAV_LINKS.map(item => {
         const active = item.key === activeKey;
-        const cls = active ? 'text-white' : 'text-white/80 hover:text-white';
-        if (item.dropdown) {
-            return `
-            <li class="relative group">
-                <button class="flex items-center gap-1 ${cls} transition-colors">
-                    ${item.label}
-                    <i class="bi bi-chevron-down text-xs mt-0.5"></i>
-                </button>
-                <div class="absolute top-full left-0 mt-3 w-56 bg-ink-800 border border-white/10 rounded-xl p-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50">
-                    ${RESOURCE_LINKS.map(r => `<a href="${r.href}" class="block px-3 py-2 text-sm rounded-lg hover:bg-white/5">${r.label}</a>`).join('')}
-                </div>
-            </li>`;
-        }
-        return `<li><a href="${item.href}" class="${cls} transition-colors">${item.label}</a></li>`;
+        return `<li><a href="${item.href}" class="swipe-link ${active ? 'text-ink-900' : 'text-ink-700 hover:text-ink-900'} text-[15px]"><span class="swipe-target">${item.label}</span></a></li>`;
     }).join('');
 
     const mobile = NAV_LINKS.map(item => {
         const active = item.key === activeKey;
-        return `<a href="${item.href}" class="block px-3 py-2.5 rounded-lg ${active ? 'bg-white/5 text-white' : 'text-white/85 hover:bg-white/5'}">${item.label}</a>`;
+        return `<a href="${item.href}" class="block px-3 py-3 rounded-xl ${active ? 'bg-paper-200 text-ink-900' : 'text-ink-700 hover:bg-paper-200'} font-display text-2xl">${item.label}</a>`;
     }).join('');
 
     return `
-    <header id="siteHeader" class="relative z-50">
-        <nav class="max-w-[1400px] mx-auto px-6 lg:px-10 py-6 flex items-center justify-between">
-            <a href="index.html" class="flex items-center gap-2.5 group" aria-label="Windikate home">
-                <span class="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center shadow-glow group-hover:scale-105 transition-transform">
-                    <svg viewBox="0 0 24 24" class="w-6 h-6 text-white" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+    <header id="siteHeader" class="site-header sticky top-0 z-50">
+        <nav class="max-w-[1480px] mx-auto px-6 lg:px-10 py-5 flex items-center justify-between">
+            <a href="index.html" class="flex items-center gap-2.5 group" aria-label="Windikate Studio home">
+                <span class="w-10 h-10 rounded-full bg-ink-900 flex items-center justify-center transition-transform group-hover:rotate-[18deg]">
+                    <svg viewBox="0 0 24 24" class="w-5 h-5 text-paper-100" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M4 7l3 11 3-7 2 7 3-11"/>
                     </svg>
                 </span>
-                <span class="text-xl font-semibold tracking-tight">windikate</span>
+                <span class="font-display text-[22px] tracking-tight">windikate<span class="text-brand-500">.</span></span>
             </a>
-            <ul class="hidden lg:flex items-center gap-9 text-[15px]">${desktop}</ul>
-            <div class="flex items-center gap-2 lg:gap-5">
-                <a href="login.html" class="hidden sm:inline-block text-[15px] text-white/80 hover:text-white px-3 py-2">Log in</a>
-                <a href="demo.html" class="inline-flex items-center gap-2 bg-brand-600 hover:bg-brand-500 text-white text-[15px] font-medium px-5 py-2.5 rounded-xl shadow-glow transition-all hover:shadow-[0_0_40px_-5px_rgba(139,92,246,0.7)]">Book a Demo</a>
-                <button id="mobileMenuBtn" class="lg:hidden text-2xl text-white/80 hover:text-white ml-2" aria-label="Open menu"><i class="bi bi-list"></i></button>
+            <ul class="hidden lg:flex items-center gap-8">${desktop}</ul>
+            <div class="flex items-center gap-3">
+                <a href="contact.html" class="hidden sm:inline-flex btn-ink !py-2.5 !px-5 text-[14px]">Let’s talk<i class="bi bi-arrow-up-right"></i></a>
+                <button id="mobileMenuBtn" class="lg:hidden text-2xl text-ink-700 hover:text-ink-900" aria-label="Open menu"><i class="bi bi-list"></i></button>
             </div>
         </nav>
-        <div id="mobileMenu" class="hidden lg:hidden px-6 pb-4">
-            <div class="bg-ink-800 border border-white/10 rounded-2xl p-4 space-y-1">
+        <div id="mobileMenu" class="hidden lg:hidden px-6 pb-5">
+            <div class="bg-paper-100 hairline border rounded-3xl p-3 space-y-1 shadow-paper">
                 ${mobile}
-                <a href="login.html" class="block px-3 py-2.5 rounded-lg text-white/85 hover:bg-white/5">Log in</a>
+                <a href="contact.html" class="block px-3 py-3 rounded-xl bg-ink-900 text-paper-100 font-display text-2xl">Let’s talk →</a>
             </div>
         </div>
     </header>`;
@@ -81,56 +55,60 @@ function navHtml(activeKey) {
 
 function footerHtml() {
     return `
-    <footer class="border-t border-white/5 mt-16">
-        <div class="max-w-[1400px] mx-auto px-6 lg:px-10 py-14">
-            <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-8">
-                <div class="col-span-2 lg:col-span-2">
-                    <a href="index.html" class="flex items-center gap-2.5 mb-4">
-                        <span class="w-9 h-9 rounded-xl bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center">
-                            <svg viewBox="0 0 24 24" class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7l3 11 3-7 2 7 3-11"/></svg>
-                        </span>
-                        <span class="text-lg font-semibold">windikate</span>
-                    </a>
-                    <p class="text-sm text-white/55 max-w-xs leading-relaxed">AI copilot for VC deal diligence. From pitch deck to partner-ready memo in minutes.</p>
-                    <div class="flex items-center gap-3 mt-5">
-                        <a href="#" class="w-9 h-9 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-center text-white/60 hover:text-white" aria-label="X / Twitter"><i class="bi bi-twitter-x"></i></a>
-                        <a href="#" class="w-9 h-9 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-center text-white/60 hover:text-white" aria-label="LinkedIn"><i class="bi bi-linkedin"></i></a>
-                        <a href="#" class="w-9 h-9 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-center text-white/60 hover:text-white" aria-label="GitHub"><i class="bi bi-github"></i></a>
+    <footer class="mt-section">
+        <div class="ink-section rounded-t-[40px]">
+            <div class="max-w-[1480px] mx-auto px-6 lg:px-10 pt-20 pb-12">
+                <div class="grid grid-cols-1 lg:grid-cols-[1.4fr_1fr] gap-12 items-end">
+                    <div>
+                        <div class="eyebrow mb-5">— Have an idea?</div>
+                        <h2 class="font-display text-[clamp(40px,6vw,96px)] leading-[0.98] tracking-tight">Let’s build the<br/><em class="text-brand-300">next good thing.</em></h2>
+                    </div>
+                    <div class="space-y-4">
+                        <p class="text-paper-200/80 text-lg leading-relaxed max-w-md">Pitch a project, ask a question, or send a cold hello. We read everything that hits the inbox.</p>
+                        <a href="contact.html" class="inline-flex items-center gap-2 bg-paper-100 text-ink-900 rounded-full px-6 py-3.5 font-medium hover:bg-white transition-colors">hello@windikate.studio<i class="bi bi-arrow-up-right"></i></a>
                     </div>
                 </div>
-                <div>
-                    <div class="text-xs font-mono uppercase tracking-wider text-white/40 mb-4">Product</div>
-                    <ul class="space-y-2.5 text-sm text-white/65">
-                        <li><a href="product.html" class="hover:text-white">Overview</a></li>
-                        <li><a href="apercept.html" class="hover:text-white">Apercept AI</a></li>
-                        <li><a href="pricing.html" class="hover:text-white">Pricing</a></li>
-                        <li><a href="demo.html" class="hover:text-white">Book a Demo</a></li>
-                    </ul>
+
+                <div class="mt-20 pt-10 border-t hairline grid grid-cols-2 sm:grid-cols-4 gap-8 text-sm">
+                    <div>
+                        <div class="eyebrow mb-4">Studio</div>
+                        <ul class="space-y-2 text-paper-200/80">
+                            <li><a href="work.html"     class="hover:text-white">Work</a></li>
+                            <li><a href="products.html" class="hover:text-white">Products</a></li>
+                            <li><a href="about.html"    class="hover:text-white">About</a></li>
+                            <li><a href="contact.html"  class="hover:text-white">Contact</a></li>
+                        </ul>
+                    </div>
+                    <div>
+                        <div class="eyebrow mb-4">Products</div>
+                        <ul class="space-y-2 text-paper-200/80">
+                            <li><a href="products.html#windikate" class="hover:text-white">Windikate AI</a></li>
+                            <li><a href="apercept.html"           class="hover:text-white">Apercept AI</a></li>
+                            <li><a href="products.html#winschool" class="hover:text-white">Win School</a></li>
+                        </ul>
+                    </div>
+                    <div>
+                        <div class="eyebrow mb-4">Social</div>
+                        <ul class="space-y-2 text-paper-200/80">
+                            <li><a href="#" class="hover:text-white">Instagram</a></li>
+                            <li><a href="#" class="hover:text-white">LinkedIn</a></li>
+                            <li><a href="#" class="hover:text-white">Dribbble</a></li>
+                            <li><a href="#" class="hover:text-white">GitHub</a></li>
+                        </ul>
+                    </div>
+                    <div>
+                        <div class="eyebrow mb-4">Legal</div>
+                        <ul class="space-y-2 text-paper-200/80">
+                            <li><a href="privacy.html"  class="hover:text-white">Privacy</a></li>
+                            <li><a href="terms.html"    class="hover:text-white">Terms</a></li>
+                            <li><a href="security.html" class="hover:text-white">Security</a></li>
+                        </ul>
+                    </div>
                 </div>
-                <div>
-                    <div class="text-xs font-mono uppercase tracking-wider text-white/40 mb-4">Company</div>
-                    <ul class="space-y-2.5 text-sm text-white/65">
-                        <li><a href="customers.html" class="hover:text-white">Customers</a></li>
-                        <li><a href="resources.html" class="hover:text-white">Resources</a></li>
-                        <li><a href="resources.html#blog" class="hover:text-white">Blog</a></li>
-                        <li><a href="mailto:hello@windikate.ai" class="hover:text-white">Contact</a></li>
-                    </ul>
-                </div>
-                <div>
-                    <div class="text-xs font-mono uppercase tracking-wider text-white/40 mb-4">Legal</div>
-                    <ul class="space-y-2.5 text-sm text-white/65">
-                        <li><a href="privacy.html" class="hover:text-white">Privacy</a></li>
-                        <li><a href="terms.html" class="hover:text-white">Terms</a></li>
-                        <li><a href="security.html" class="hover:text-white">Security</a></li>
-                        <li><a href="login.html" class="hover:text-white">Log in</a></li>
-                    </ul>
-                </div>
-            </div>
-            <div class="mt-12 pt-6 border-t border-white/5 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-white/45">
-                <div>© 2026 Windikate. All rights reserved.</div>
-                <div class="flex items-center gap-2">
-                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                    All systems operational
+
+                <div class="mt-14 pt-6 border-t hairline flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-paper-200/55 font-mono">
+                    <div>© 2026 Windikate Studio — Dehradun · Bengaluru</div>
+                    <div class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>Open for new projects</div>
                 </div>
             </div>
         </div>
