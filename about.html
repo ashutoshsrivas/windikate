@@ -139,17 +139,21 @@
             <li class="team-row" data-team="founder"><span class="team-row__num">03</span><h3 class="team-row__name font-display">Abhinav Garg</h3><span class="team-row__role">CEO · Ops & Marketing</span></li>
             <li class="team-row" data-team="founder"><span class="team-row__num">04</span><h3 class="team-row__name font-display">Aman Dobriyal</h3><span class="team-row__role">CTO · Full-stack</span></li>
 
-            <!-- Collaborators — the wider studio -->
-            <li class="team-row"><span class="team-row__num">05</span><h3 class="team-row__name font-display">Shaurya Jamwal</h3><span class="team-row__role">Studio</span></li>
-            <li class="team-row"><span class="team-row__num">06</span><h3 class="team-row__name font-display">Abhinav Jain</h3><span class="team-row__role">Studio</span></li>
-            <li class="team-row"><span class="team-row__num">07</span><h3 class="team-row__name font-display">Ansh Gujral</h3><span class="team-row__role">Studio</span></li>
-            <li class="team-row"><span class="team-row__num">08</span><h3 class="team-row__name font-display">Seeya Tuteja</h3><span class="team-row__role">Studio</span></li>
-            <li class="team-row"><span class="team-row__num">09</span><h3 class="team-row__name font-display">Ajay Pratap Singh Negi</h3><span class="team-row__role">Studio</span></li>
-            <li class="team-row"><span class="team-row__num">10</span><h3 class="team-row__name font-display">Pratyansh Vishwakarma</h3><span class="team-row__role">Studio</span></li>
-            <li class="team-row"><span class="team-row__num">11</span><h3 class="team-row__name font-display">Devansh Mehra</h3><span class="team-row__role">Studio</span></li>
-            <li class="team-row"><span class="team-row__num">12</span><h3 class="team-row__name font-display">Shubhankar Bhattacharya</h3><span class="team-row__role">Studio</span></li>
-            <li class="team-row"><span class="team-row__num">13</span><h3 class="team-row__name font-display">Shrey Panwar</h3><span class="team-row__role">Studio</span></li>
-            <li class="team-row"><span class="team-row__num">14</span><h3 class="team-row__name font-display">Rohit Pandey</h3><span class="team-row__role">Studio</span></li>
+            <!-- Development -->
+            <li class="team-row" data-discipline="dev"><span class="team-row__num">05</span><h3 class="team-row__name font-display">Abhinav Jain</h3><span class="team-row__role">Development</span></li>
+            <li class="team-row" data-discipline="dev"><span class="team-row__num">06</span><h3 class="team-row__name font-display">Ansh Gujral</h3><span class="team-row__role">Development</span></li>
+            <li class="team-row" data-discipline="dev"><span class="team-row__num">07</span><h3 class="team-row__name font-display">Ajay Pratap Singh Negi</h3><span class="team-row__role">Development</span></li>
+            <li class="team-row" data-discipline="dev"><span class="team-row__num">08</span><h3 class="team-row__name font-display">Rohit Pandey</h3><span class="team-row__role">Development</span></li>
+            <li class="team-row" data-discipline="dev"><span class="team-row__num">09</span><h3 class="team-row__name font-display">Shrey Panwar</h3><span class="team-row__role">Development</span></li>
+
+            <!-- Operations -->
+            <li class="team-row" data-discipline="ops"><span class="team-row__num">10</span><h3 class="team-row__name font-display">Pratyansh Vishwakarma</h3><span class="team-row__role">Operations</span></li>
+            <li class="team-row" data-discipline="ops"><span class="team-row__num">11</span><h3 class="team-row__name font-display">Devansh Mehra</h3><span class="team-row__role">Operations</span></li>
+            <li class="team-row" data-discipline="ops"><span class="team-row__num">12</span><h3 class="team-row__name font-display">Shubhankar Bhattacharya</h3><span class="team-row__role">Operations</span></li>
+
+            <!-- Marketing -->
+            <li class="team-row" data-discipline="mkt"><span class="team-row__num">13</span><h3 class="team-row__name font-display">Shaurya Pratap Singh Jamwal</h3><span class="team-row__role">Marketing</span></li>
+            <li class="team-row" data-discipline="mkt"><span class="team-row__num">14</span><h3 class="team-row__name font-display">Seeya Tuteja</h3><span class="team-row__role">Marketing</span></li>
         </ol>
     </section>
 
@@ -197,7 +201,22 @@
             text-transform: uppercase;
             color: rgba(12,10,9,0.50);
             text-align: right;
+            position: relative;
+            padding-left: 14px;
         }
+        .team-row__role::before {
+            content: '';
+            position: absolute; left: 0; top: 50%;
+            width: 6px; height: 6px;
+            border-radius: 999px;
+            background: currentColor;
+            opacity: 0.6;
+            transform: translateY(-50%);
+        }
+        .team-row[data-discipline="dev"] .team-row__role { color: #6d28d9; }
+        .team-row[data-discipline="ops"] .team-row__role { color: #0f766e; }
+        .team-row[data-discipline="mkt"] .team-row__role { color: #c2410c; }
+        .team-row[data-team="founder"] .team-row__role { color: #0c0a09; }
         .team-row[data-team="founder"] .team-row__name::after {
             content: '★';
             display: inline-block;
