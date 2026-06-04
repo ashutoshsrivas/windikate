@@ -148,6 +148,57 @@ const PROJECTS = [
         url: 'https://hsconnect.in/',
         backend: 'https://amandobriyal.com/projects/hsconnect',
         accent: '#ede9fe'
+    },
+
+    /* ----- Content & film work shipped through Twizzle Media House
+       (which is itself a Windikate project — see twizzle-media-house above) */
+    {
+        slug: 'cribapp', title: 'CribApp',
+        category: 'Brand Film · App', cat: 'media',
+        year: '2024', services: ['Brand Film', 'Product Shoot'],
+        summary: 'Brand films and product cinematography for a next-gen housing app.',
+        url: 'https://cribapp.com/',
+        accent: '#dbeafe'
+    },
+    {
+        slug: 'lemon-lessons', title: 'Lemon Lessons with Anusha',
+        category: 'Podcast · Content', cat: 'media',
+        year: '2024', services: ['Podcast', 'Production', 'Edit'],
+        summary: 'Episode-driven podcast and short-form content for an education creator’s flagship series.',
+        url: 'https://twizzlemediahouse.com/podcast.html',
+        accent: '#fef3c7'
+    },
+    {
+        slug: 'lysto-gg', title: 'Lysto GG',
+        category: 'Gaming · Content', cat: 'media',
+        year: '2024', services: ['Brand Film', 'Esports Coverage'],
+        summary: 'Esports and gaming content for an India-first competitive gaming platform.',
+        url: 'https://lysto.gg/',
+        accent: '#ddd6fe'
+    },
+    {
+        slug: 'wealthup', title: 'Wealthup',
+        category: 'Fintech · Film', cat: 'media',
+        year: '2024', services: ['Brand Film', 'Explainer'],
+        summary: 'Brand films and animated explainers for a personal-finance learning platform.',
+        url: 'https://wealthup.in/',
+        accent: '#d1fae5'
+    },
+    {
+        slug: 'mocha-lights', title: 'Mocha Lights',
+        category: 'Product · Lifestyle', cat: 'media',
+        year: '2024', services: ['Product Shoot', 'Lifestyle Film'],
+        summary: 'Product films and lifestyle visuals for a premium lighting brand.',
+        url: 'https://mochalights.com/',
+        accent: '#fde68a'
+    },
+    {
+        slug: 'acquis-compliance', title: 'Acquis Compliance',
+        category: 'B2B · Corporate Film', cat: 'media',
+        year: '2024', services: ['Corporate Film', 'Event Coverage'],
+        summary: 'Corporate films and event coverage for a B2B compliance leader.',
+        url: 'https://acquiscompliance.com/',
+        accent: '#e5e7eb'
     }
 ];
 
