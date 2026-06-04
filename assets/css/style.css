@@ -372,6 +372,231 @@ body::before {
 .marquee__item  { display: inline-flex; align-items: center; gap: 1.25rem; }
 .marquee__item .dot { width: 8px; height: 8px; border-radius: 999px; background: currentColor; opacity: .6; }
 
+/* ============================================================
+   WORK PAGE · sticky-preview split layout
+   ============================================================ */
+
+.work-split {
+    display: grid;
+    grid-template-columns: 1.05fr 1fr;
+    column-gap: clamp(2rem, 5vw, 5rem);
+    align-items: start;
+}
+@media (max-width: 1024px) {
+    .work-split { grid-template-columns: 1fr; row-gap: 2.5rem; }
+}
+
+.work-split__list { min-width: 0; }
+.work-split__preview {
+    position: sticky;
+    top: 90px;
+    align-self: start;
+    z-index: 1;
+}
+@media (max-width: 1024px) {
+    .work-split__preview { display: none; }
+}
+
+/* ---------- Compact index rows --------------------------- */
+.idx-list {
+    list-style: none; padding: 0; margin: 0;
+    border-top: 1px solid rgba(12,10,9,0.12);
+}
+.idx-row {
+    position: relative;
+    border-bottom: 1px solid rgba(12,10,9,0.10);
+    transition: background-color 0.5s cubic-bezier(.5,0,.2,1);
+}
+.idx-row__link {
+    display: grid;
+    grid-template-columns: 44px 1fr auto auto 36px;
+    gap: clamp(0.75rem, 2vw, 1.75rem);
+    align-items: baseline;
+    padding: 22px 0;
+    text-decoration: none; color: inherit;
+    transition: padding 0.55s cubic-bezier(.5,0,.2,1);
+}
+.idx-row.is-active { background-color: var(--accent, transparent); }
+.idx-row.is-active .idx-row__link { padding-left: 18px; padding-right: 18px; }
+
+.idx-row__num {
+    font: 500 11px/1 'JetBrains Mono', ui-monospace, monospace;
+    letter-spacing: 0.14em;
+    color: rgba(12,10,9,0.42);
+    align-self: center;
+}
+.idx-row__title {
+    font-weight: 500;
+    font-size: clamp(22px, 2.6vw, 36px);
+    line-height: 1;
+    letter-spacing: -0.022em;
+    transition: transform 0.5s cubic-bezier(.5,0,.2,1),
+                font-style 0.3s ease;
+    min-width: 0;
+}
+.idx-row.is-active .idx-row__title,
+.idx-row__link:hover .idx-row__title {
+    transform: translateX(14px);
+    font-style: italic;
+}
+.idx-row__cat {
+    font: 500 11px/1 'JetBrains Mono', ui-monospace, monospace;
+    letter-spacing: 0.10em;
+    text-transform: uppercase;
+    color: rgba(12,10,9,0.55);
+    align-self: center;
+}
+.idx-row__year {
+    font: 500 11px/1 'JetBrains Mono', ui-monospace, monospace;
+    letter-spacing: 0.12em;
+    color: rgba(12,10,9,0.50);
+    align-self: center;
+}
+.idx-row__arrow {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 36px; height: 36px; border-radius: 999px;
+    border: 1px solid rgba(12,10,9,0.18);
+    font-size: 13px; color: #0c0a09;
+    transition: transform 0.5s cubic-bezier(.5,0,.2,1),
+                background-color 0.3s, color 0.3s, border-color 0.3s;
+    align-self: center;
+}
+.idx-row.is-active .idx-row__arrow,
+.idx-row__link:hover .idx-row__arrow {
+    background: #0c0a09; color: #faf8f2; border-color: #0c0a09;
+    transform: rotate(-45deg);
+}
+
+@media (max-width: 640px) {
+    .idx-row__link {
+        grid-template-columns: 28px 1fr 28px;
+        padding: 16px 0;
+        gap: 0.75rem;
+    }
+    .idx-row__cat, .idx-row__year { display: none; }
+    .idx-row__title { font-size: clamp(18px, 5vw, 26px); }
+}
+
+/* ---------- Preview card (sticky pane) ------------------- */
+.preview-card {
+    border-radius: 28px; overflow: hidden;
+    background: #fff;
+    border: 1px solid rgba(12,10,9,0.08);
+    box-shadow: 0 24px 60px -28px rgba(12,10,9,0.30);
+}
+.preview-card__media {
+    position: relative; aspect-ratio: 16 / 10; overflow: hidden;
+    background-color: var(--accent, #f3efe5);
+    isolation: isolate;
+}
+.preview-card__fallback {
+    position: absolute; inset: 0; z-index: 0;
+    display: flex; flex-direction: column; justify-content: space-between;
+    padding: 28px 30px;
+    color: #0c0a09;
+    pointer-events: none;
+}
+.preview-card__eyebrow {
+    font: 500 10px/1 'JetBrains Mono', ui-monospace, monospace;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    opacity: 0.55;
+}
+.preview-card__title {
+    font-family: 'Fraunces', ui-serif, serif;
+    font-weight: 500;
+    font-size: clamp(36px, 3.4vw, 56px);
+    line-height: 0.98;
+    letter-spacing: -0.024em;
+    margin-top: auto;
+}
+.preview-card__media img {
+    position: absolute; inset: 0; z-index: 1;
+    width: 100%; height: 100%;
+    object-fit: cover; object-position: top center;
+    opacity: 0;
+    transition: opacity 0.7s ease;
+}
+.preview-card__media img.is-loaded { opacity: 1; }
+
+.preview-card__details {
+    padding: 24px 28px 28px;
+}
+.preview-card__meta {
+    display: flex; align-items: center; gap: 12px;
+    flex-wrap: wrap; margin-bottom: 14px;
+}
+.preview-card__services {
+    font: 500 10px/1 'JetBrains Mono', ui-monospace, monospace;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgba(12,10,9,0.55);
+}
+.preview-card__summary {
+    font-family: 'Fraunces', ui-serif, serif;
+    font-size: 18px;
+    line-height: 1.4;
+    letter-spacing: -0.005em;
+    color: rgba(12,10,9,0.85);
+    margin: 0 0 22px;
+}
+.preview-card__actions {
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+}
+
+/* ---------- Filter chips (work hero) --------------------- */
+.work-filters {
+    display: flex; flex-wrap: wrap; gap: 8px;
+}
+.work-filters button {
+    appearance: none; border: 0;
+    padding: 9px 16px;
+    border-radius: 999px;
+    font: 500 13px/1 'Inter', sans-serif;
+    letter-spacing: -0.005em;
+    background: transparent;
+    color: rgba(12,10,9,0.55);
+    border: 1px solid rgba(12,10,9,0.14);
+    cursor: pointer;
+    transition: background 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+.work-filters button:hover {
+    background: rgba(12,10,9,0.05);
+    color: rgba(12,10,9,0.85);
+}
+.work-filters button.is-active {
+    background: #0c0a09; color: #faf8f2; border-color: #0c0a09;
+}
+
+/* ---------- Big horizontal marquee of names -------------- */
+.name-marquee {
+    overflow: hidden; padding: 1.5rem 0;
+    border-top: 1px solid rgba(12,10,9,0.12);
+    border-bottom: 1px solid rgba(12,10,9,0.12);
+}
+.name-marquee__track {
+    display: inline-flex; gap: 3rem;
+    animation: marquee 50s linear infinite;
+    will-change: transform;
+}
+.name-marquee:hover .name-marquee__track { animation-play-state: paused; }
+.name-marquee__item {
+    font-family: 'Fraunces', ui-serif, serif;
+    font-size: clamp(40px, 6vw, 92px);
+    line-height: 0.95; letter-spacing: -0.025em;
+    color: rgba(12,10,9,0.15);
+    white-space: nowrap;
+    transition: color 0.3s ease;
+}
+.name-marquee__item:hover { color: #0c0a09; font-style: italic; }
+.name-marquee__star {
+    font-family: 'Fraunces', ui-serif, serif;
+    font-size: clamp(40px, 6vw, 92px);
+    color: #6d28d9;
+    line-height: 0.95;
+    align-self: center;
+}
+
 /* ---------- Editorial project row ------------------------ */
 /* A magazine-style index row. Renders beautifully with zero images.
    Screenshot thumbnail (if it eventually arrives from thum.io) floats

@@ -7,8 +7,7 @@
 const NAV_LINKS = [
     { key: 'work',     label: 'Work',     href: 'work.html' },
     { key: 'products', label: 'Products', href: 'products.html' },
-    { key: 'studio',   label: 'Studio',   href: 'about.html' },
-    { key: 'journal',  label: 'Journal',  href: 'resources.html' }
+    { key: 'studio',   label: 'Studio',   href: 'about.html' }
 ];
 
 function backgroundLayers() {

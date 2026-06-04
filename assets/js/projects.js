@@ -251,3 +251,55 @@ function projectRowHtml(p, index = 1) {
 function workCardHtml(p, _featured, index = null) {
     return projectRowHtml(p, index || 1);
 }
+
+/* Compact index row — used by the sticky-preview layout on /work.html.
+   Minimal hover decoration (just colour) since the preview pane on the
+   right does the heavy visual lifting. */
+function projectIndexRowHtml(p, index = 1) {
+    return `
+    <li class="idx-row" data-slug="${p.slug}" data-cat="${p.cat}" data-year="${p.year}" style="--accent: ${p.accent}">
+        <a href="${p.url}" target="_blank" rel="noreferrer" class="idx-row__link">
+            <span class="idx-row__num">${String(index).padStart(2, '0')}</span>
+            <span class="idx-row__title font-display">${p.title}</span>
+            <span class="idx-row__cat">${CAT_LABEL[p.cat]}</span>
+            <span class="idx-row__year">${p.year}</span>
+            <span class="idx-row__arrow"><i class="bi bi-arrow-up-right"></i></span>
+        </a>
+    </li>`;
+}
+
+/* Big preview card — fills the sticky pane on the right of /work.html.
+   The card renders project name + meta as the primary content; if the
+   screenshot returns from thum.io it fades in over the colour panel. */
+function projectPreviewCardHtml(p) {
+    const screenshotUrl = p.external ? null : projectScreenshot(p.url, 1100, 690);
+    const image = screenshotUrl
+        ? `<img src="${screenshotUrl}" alt="${p.title}" loading="eager" decoding="async" fetchpriority="high" referrerpolicy="no-referrer" data-fade onerror="this.remove()" />`
+        : '';
+    const backendChip = p.backend
+        ? `<a href="${p.backend}" target="_blank" rel="noreferrer" class="cat-chip hover:bg-ink-900 hover:text-paper-100 transition-colors"><i class="bi bi-database"></i>Backend</a>`
+        : '';
+    return `
+        <div class="preview-card" data-cat="${p.cat}" style="--accent: ${p.accent}">
+            <div class="preview-card__media">
+                <div class="preview-card__fallback">
+                    <div class="preview-card__eyebrow">${CAT_LABEL[p.cat]} · ${p.year}</div>
+                    <div class="preview-card__title">${p.title}</div>
+                </div>
+                ${image}
+            </div>
+            <div class="preview-card__details">
+                <div class="preview-card__meta">
+                    <span class="cat-chip" data-cat="${p.cat}">${CAT_LABEL[p.cat]}</span>
+                    <span class="preview-card__services">${p.services.join(' · ')}</span>
+                </div>
+                <p class="preview-card__summary">${p.summary}</p>
+                <div class="preview-card__actions">
+                    <a href="${p.url}" target="_blank" rel="noreferrer" class="btn-ink" data-magnet>
+                        <span class="magnet-inner">Visit site<i class="bi bi-arrow-up-right"></i></span>
+                    </a>
+                    ${backendChip}
+                </div>
+            </div>
+        </div>`;
+}

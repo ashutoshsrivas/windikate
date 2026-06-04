@@ -11,62 +11,167 @@
     <script>document.write(navHtml('work'))</script>
 
     <!-- ============================ HERO ============================ -->
-    <section class="relative max-w-[1480px] mx-auto px-6 lg:px-10 pt-10 lg:pt-16 pb-12 kinetic">
+    <section class="relative max-w-[1480px] mx-auto px-6 lg:px-10 pt-10 lg:pt-16 pb-10 kinetic">
         <span class="float-accent text-[140px] hidden lg:block" style="top: 12%; right: 6%;">&amp;</span>
         <span class="float-accent text-[100px] hidden lg:block" data-delay="2" style="bottom: 6%; right: 22%;">.</span>
         <div class="relative z-10">
-            <div class="eyebrow eyebrow-dot mb-4 reveal-up">Selected work · <span id="proj-count">17</span> projects</div>
+            <div class="eyebrow eyebrow-dot mb-4 reveal-up">Selected work · <span id="proj-count">23</span> projects</div>
             <h1 class="font-display text-display-1 max-w-5xl">Things we <em class="ital">made</em>, in chronological disorder.</h1>
             <p class="mt-7 text-ink-500 text-[18px] leading-[1.6] max-w-2xl reveal-up" style="--reveal-delay: 600">From co-living brands to enterprise SaaS, from a department’s exam tool to brand films for India’s next consumer wave. Websites, software, films — no fluff.</p>
         </div>
     </section>
 
-    <!-- ============================ FILTER ============================ -->
-    <section class="max-w-[1480px] mx-auto px-6 lg:px-10 pb-8 sticky top-[72px] z-40 bg-paper-100/95 backdrop-blur">
-        <div class="flex flex-wrap items-center gap-2" data-aos="fade-up">
-            <button data-filter="all" class="is-active bg-ink-900 text-paper-100 px-4 py-2 rounded-full text-sm font-medium transition-colors">All</button>
-            <button data-filter="brand"      class="bg-paper-200 text-ink-700 hover:bg-paper-300 px-4 py-2 rounded-full text-sm font-medium transition-colors">Brand & Web</button>
-            <button data-filter="saas"       class="bg-paper-200 text-ink-700 hover:bg-paper-300 px-4 py-2 rounded-full text-sm font-medium transition-colors">SaaS</button>
-            <button data-filter="edtech"     class="bg-paper-200 text-ink-700 hover:bg-paper-300 px-4 py-2 rounded-full text-sm font-medium transition-colors">EdTech</button>
-            <button data-filter="realestate" class="bg-paper-200 text-ink-700 hover:bg-paper-300 px-4 py-2 rounded-full text-sm font-medium transition-colors">Real Estate</button>
-            <button data-filter="media"      class="bg-paper-200 text-ink-700 hover:bg-paper-300 px-4 py-2 rounded-full text-sm font-medium transition-colors">Media & Film</button>
-            <button data-filter="portfolio"  class="bg-paper-200 text-ink-700 hover:bg-paper-300 px-4 py-2 rounded-full text-sm font-medium transition-colors">Portfolio</button>
+    <!-- ============================ NAME MARQUEE ============================ -->
+    <section class="name-marquee my-6" aria-hidden="true">
+        <div class="name-marquee__track">
+            <!-- Filled by JS — two copies for seamless loop -->
         </div>
     </section>
 
-    <!-- ============================ LIST ============================ -->
-    <section class="max-w-[1480px] mx-auto px-6 lg:px-10 pb-section">
-        <div id="project-list" class="proj-list"></div>
+    <!-- ============================ FILTER ============================ -->
+    <section class="max-w-[1480px] mx-auto px-6 lg:px-10 py-8 sticky top-[68px] z-30 bg-paper-100/95 backdrop-blur-md">
+        <div class="work-filters" data-aos="fade-up">
+            <button data-filter="all" class="is-active">All <span class="opacity-50 ml-1">23</span></button>
+            <button data-filter="brand">Brand &amp; Web</button>
+            <button data-filter="saas">SaaS</button>
+            <button data-filter="edtech">EdTech</button>
+            <button data-filter="realestate">Real Estate</button>
+            <button data-filter="media">Media &amp; Film</button>
+            <button data-filter="portfolio">Portfolio</button>
+        </div>
     </section>
 
-    <script>
-        document.getElementById('proj-count').textContent = PROJECTS.length;
-        document.getElementById('project-list').innerHTML = PROJECTS.map((p, i) => projectRowHtml(p, i + 1)).join('');
-        /* Above-the-fold rows get an eager-loaded preview thumb so the
-           hover interaction feels instant. The rest lazy-load. */
-        document.querySelectorAll('#project-list .proj-row').forEach((row, i) => {
-            if (i < 4) {
-                const img = row.querySelector('img');
-                if (img) { img.loading = 'eager'; img.fetchPriority = 'high'; }
-            }
-        });
-    </script>
+    <!-- ============================ SPLIT LAYOUT ============================ -->
+    <section class="max-w-[1480px] mx-auto px-6 lg:px-10 pb-section">
+        <div class="work-split">
+            <!-- LEFT — index list -->
+            <div class="work-split__list">
+                <ol id="proj-index" class="idx-list"></ol>
+            </div>
+
+            <!-- RIGHT — sticky preview -->
+            <aside class="work-split__preview" id="proj-preview" aria-live="polite">
+                <!-- Filled by JS -->
+            </aside>
+        </div>
+    </section>
 
     <!-- ============================ CTA ============================ -->
     <section class="max-w-[1480px] mx-auto px-6 lg:px-10 pb-section">
         <div class="rounded-[32px] bg-ink-900 text-paper-100 p-10 sm:p-16 grid grid-cols-1 lg:grid-cols-[1.4fr_1fr] gap-10 items-end" data-aos="fade-up">
-            <div>
+            <div class="kinetic">
                 <div class="eyebrow text-paper-200 mb-4">— Yours next?</div>
                 <h2 class="font-display text-[clamp(36px,5vw,72px)] leading-[1] tracking-tight">Got something brewing?<br/><em class="ital text-brand-300">Tell us about it.</em></h2>
             </div>
             <div class="space-y-4">
                 <p class="text-paper-200/80 leading-relaxed">We read every email. Even the ones that start with “hi i have an idea.”</p>
-                <a href="contact.html" class="inline-flex items-center gap-2 bg-paper-100 text-ink-900 rounded-full px-6 py-3.5 font-medium hover:bg-white transition-colors">Start the conversation<i class="bi bi-arrow-up-right"></i></a>
+                <a href="contact.html" data-magnet class="inline-flex items-center gap-2 bg-paper-100 text-ink-900 rounded-full px-6 py-3.5 font-medium hover:bg-white transition-colors"><span class="magnet-inner">Start the conversation<i class="bi bi-arrow-up-right"></i></span></a>
             </div>
         </div>
     </section>
 
     <script>document.write(footerHtml())</script>
     <script>document.write(pageScripts())</script>
+
+    <script>
+    /* =========================================================
+       Work page — populate the index list, manage the sticky
+       preview, drive the active-row sync on hover + scroll.
+       ========================================================= */
+    (function () {
+        const list    = document.getElementById('proj-index');
+        const preview = document.getElementById('proj-preview');
+        const marquee = document.querySelector('.name-marquee__track');
+        if (!list || !preview) return;
+
+        // --- 1 · Render the index list -----------------------
+        list.innerHTML = PROJECTS.map((p, i) => projectIndexRowHtml(p, i + 1)).join('');
+        document.getElementById('proj-count').textContent = PROJECTS.length;
+
+        // --- 2 · Fill the marquee with all names -------------
+        if (marquee) {
+            const items = PROJECTS.map(p => `<span class="name-marquee__item">${p.title}</span><span class="name-marquee__star">✦</span>`).join('');
+            marquee.innerHTML = items + items; // duplicate for seamless loop
+        }
+
+        // --- 3 · Render the preview pane ---------------------
+        let activeSlug = null;
+        function showPreview(slug, source) {
+            if (slug === activeSlug) return;
+            activeSlug = slug;
+            const project = PROJECTS.find(p => p.slug === slug);
+            if (!project) return;
+
+            // Update preview card
+            preview.innerHTML = projectPreviewCardHtml(project);
+
+            // Fade in the new screenshot (if it loads)
+            const img = preview.querySelector('img[data-fade]');
+            if (img) {
+                if (img.complete && img.naturalWidth > 0) img.classList.add('is-loaded');
+                else {
+                    img.addEventListener('load',  () => img.classList.add('is-loaded'), { once: true });
+                    img.addEventListener('error', () => img.classList.add('is-loaded'), { once: true });
+                }
+            }
+
+            // Wire magnetic behaviour for the new btn-ink inside
+            if (matchMedia('(pointer: fine)').matches) {
+                preview.querySelectorAll('[data-magnet]').forEach(btn => {
+                    const STRENGTH = 0.22;
+                    btn.addEventListener('mousemove', e => {
+                        const r = btn.getBoundingClientRect();
+                        const dx = (e.clientX - (r.left + r.width / 2)) * STRENGTH;
+                        const dy = (e.clientY - (r.top  + r.height / 2)) * STRENGTH;
+                        btn.style.transform = `translate3d(${dx}px, ${dy}px, 0)`;
+                        const inner = btn.querySelector('.magnet-inner');
+                        if (inner) inner.style.transform = `translate3d(${dx * 0.3}px, ${dy * 0.3}px, 0)`;
+                    });
+                    btn.addEventListener('mouseleave', () => {
+                        btn.style.transform = '';
+                        const inner = btn.querySelector('.magnet-inner');
+                        if (inner) inner.style.transform = '';
+                    });
+                });
+            }
+
+            // Mark the active row
+            list.querySelectorAll('.idx-row').forEach(r => r.classList.toggle('is-active', r.dataset.slug === slug));
+        }
+
+        // --- 4 · Initial state -------------------------------
+        showPreview(PROJECTS[0].slug, 'init');
+
+        // --- 5 · Hover sync ---------------------------------
+        list.addEventListener('mouseover', e => {
+            const row = e.target.closest('.idx-row');
+            if (row) showPreview(row.dataset.slug, 'hover');
+        });
+
+        // --- 6 · Scroll sync (mobile / no-hover) -------------
+        const io = new IntersectionObserver(entries => {
+            const visible = entries
+                .filter(e => e.isIntersecting)
+                .sort((a, b) => Math.abs(a.boundingClientRect.top - innerHeight * 0.4) - Math.abs(b.boundingClientRect.top - innerHeight * 0.4));
+            if (visible[0]) showPreview(visible[0].target.dataset.slug, 'scroll');
+        }, { rootMargin: '-30% 0px -50% 0px', threshold: 0 });
+        list.querySelectorAll('.idx-row').forEach(r => io.observe(r));
+
+        // --- 7 · Filter chips -------------------------------
+        const filterBtns = document.querySelectorAll('.work-filters button');
+        filterBtns.forEach(b => b.addEventListener('click', () => {
+            filterBtns.forEach(x => x.classList.remove('is-active'));
+            b.classList.add('is-active');
+            const f = b.dataset.filter;
+            let firstVisible = null;
+            list.querySelectorAll('.idx-row').forEach(row => {
+                const match = f === 'all' || row.dataset.cat === f;
+                row.style.display = match ? '' : 'none';
+                if (match && !firstVisible) firstVisible = row.dataset.slug;
+            });
+            if (firstVisible) showPreview(firstVisible, 'filter');
+        }));
+    })();
+    </script>
 </body>
 </html>
