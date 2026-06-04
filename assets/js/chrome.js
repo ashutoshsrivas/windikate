@@ -87,7 +87,7 @@ function footerHtml() {
                     </div>
                     <div class="space-y-4">
                         <p class="text-paper-200/80 text-lg leading-relaxed max-w-md">Pitch a project, ask a question, or send a cold hello. We read everything that hits the inbox.</p>
-                        <a href="contact.html" class="inline-flex items-center gap-2 bg-paper-100 text-ink-900 rounded-full px-6 py-3.5 font-medium hover:bg-white transition-colors">hello@windikate.studio<i class="bi bi-arrow-up-right"></i></a>
+                        <a href="contact.html" class="inline-flex items-center gap-2 bg-paper-100 text-ink-900 rounded-full px-6 py-3.5 font-medium hover:bg-white transition-colors">hello@windikate.com<i class="bi bi-arrow-up-right"></i></a>
                     </div>
                 </div>
 
