@@ -11,43 +11,51 @@
     <script>document.write(navHtml('home'))</script>
 
     <!-- ============================ HERO ============================ -->
-    <section class="relative max-w-[1480px] mx-auto px-6 lg:px-10 pt-10 lg:pt-16 pb-10 kinetic">
-        <!-- Floating decorative typography (purely atmospheric) -->
-        <span class="float-accent text-[140px] hidden lg:block" style="top: 6%; right: 4%;">*</span>
-        <span class="float-accent text-[90px] hidden lg:block" data-delay="1" style="top: 38%; right: 14%;">+</span>
-        <span class="float-accent text-[120px] hidden lg:block" data-delay="2" style="bottom: 12%; left: 38%;">/</span>
+    <section class="hero-v2">
 
-        <div class="relative grid grid-cols-1 lg:grid-cols-[1.45fr_1fr] gap-12 items-end z-10">
-            <div>
-                <div class="flex items-center gap-4 mb-8 reveal-up" style="--reveal-delay: 0">
-                    <span class="eyebrow eyebrow-dot">Independent studio · est. 2021</span>
-                    <span class="hidden sm:inline-flex items-center gap-2 text-sm text-ink-500">Open for projects · Aug — Oct</span>
-                </div>
+        <!-- Top meta strip -->
+        <header class="hero-v2__meta">
+            <span class="eyebrow eyebrow-dot">Independent studio · est. 2021</span>
+            <span class="hero-v2__loc">Dehradun + Bengaluru</span>
+            <span class="hero-v2__status">
+                <span class="status-pulse" aria-hidden="true"></span>
+                Open for projects · Aug — Oct
+            </span>
+        </header>
 
-                <h1 class="font-display text-display-1 tracking-tight">
-                    Brands, websites<br/>and software for<br/>teams who <em class="ital">care</em>.
-                </h1>
-
-                <div class="mt-9 flex flex-wrap items-center gap-3 reveal-up" style="--reveal-delay: 700">
-                    <a href="work.html" data-magnet class="btn-ink"><span class="magnet-inner">See selected work<i class="bi bi-arrow-down-right"></i></span></a>
-                    <a href="contact.html" data-magnet class="btn-paper"><span class="magnet-inner">Start a project<i class="bi bi-arrow-up-right"></i></span></a>
-                </div>
-            </div>
-
-            <aside data-aos="fade-up" data-aos-delay="100" class="lg:pl-8 lg:border-l hairline">
-                <p class="text-ink-500 text-[18px] leading-[1.55] max-w-md">
-                    We are <span class="text-ink-900 font-medium">Windikate</span> — a four-person studio shipping
-                    digital products end-to-end. Brand and identity. Marketing sites. Real software.
-                    We also build a small line of our own products under the same roof.
-                </p>
-                <ul class="mt-7 grid grid-cols-2 gap-y-4 text-sm">
-                    <li><div class="eyebrow mb-1">Founded</div><div class="font-display text-lg">2021</div></li>
-                    <li><div class="eyebrow mb-1">Based in</div><div class="font-display text-lg">Dehradun · BLR</div></li>
-                    <li><div class="eyebrow mb-1">Projects shipped</div><div class="font-display text-lg"><span data-count="40" data-suffix="+">0+</span></div></li>
-                    <li><div class="eyebrow mb-1">Avg. project</div><div class="font-display text-lg">6 — 12 wks</div></li>
-                </ul>
-            </aside>
+        <!-- Main composition · headline + giant background mark -->
+        <div class="hero-v2__main kinetic">
+            <span class="hero-v2__mark" aria-hidden="true">&amp;</span>
+            <h1 class="hero-v2__title">
+                Brands, websites &amp;
+                <span class="cycler" aria-label="software, films, tools, systems">
+                    <span>software</span>
+                    <span>films</span>
+                    <span>tools</span>
+                    <span>systems</span>
+                </span>
+                for teams who <span class="brand-italic">care<span class="scribble" aria-hidden="true"></span></span>.
+            </h1>
         </div>
+
+        <!-- Bottom strip · CTAs + animated credits -->
+        <footer class="hero-v2__foot">
+            <div class="hero-v2__ctas">
+                <a href="work.html" data-magnet class="btn-ink">
+                    <span class="magnet-inner">See selected work <i class="bi bi-arrow-down-right"></i></span>
+                </a>
+                <a href="contact.html" data-magnet class="btn-paper">
+                    <span class="magnet-inner">Start a project <i class="bi bi-arrow-up-right"></i></span>
+                </a>
+            </div>
+            <div class="hero-v2__credits">
+                <span><strong data-count="40" data-suffix="+">0</strong>projects shipped</span>
+                <span class="sep">·</span>
+                <span><strong data-count="14">0</strong>hands on deck</span>
+                <span class="sep">·</span>
+                <span><strong data-count="5">0</strong>quiet years</span>
+            </div>
+        </footer>
     </section>
 
     <!-- ============================ MARQUEE ============================ -->

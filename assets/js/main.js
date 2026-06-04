@@ -162,20 +162,36 @@
                     });
                     node.parentNode.replaceChild(frag, node);
                 } else if (node.nodeType === Node.ELEMENT_NODE) {
-                    /* Don't recurse into <br>, but unwrap content of inline
-                       elements (em / span) so their text gets word-split too. */
                     if (node.tagName === 'BR') return;
-                    if (node.tagName === 'EM' || node.tagName === 'SPAN' || node.tagName === 'I') {
-                        // Treat the inline element itself as a single "word" so its
-                        // styling (italic, brand colour) stays intact during the
-                        // reveal animation.
-                        const text = node.textContent;
-                        const inner = document.createElement('em');
-                        inner.style.fontStyle = node.tagName === 'EM' || node.tagName === 'I' ? 'italic' : 'normal';
-                        inner.className = node.className;
-                        inner.textContent = text;
+
+                    /* The .cycler element is a self-contained mini-component
+                       (slot-machine word cycler). Wrap it in a .word so it
+                       rides the reveal animation as ONE unit, but keep its
+                       internal structure intact. */
+                    if (node.classList && node.classList.contains('cycler')) {
                         const word = document.createElement('span');
                         word.className = 'word';
+                        const inner = document.createElement('span');
+                        inner.appendChild(node.cloneNode(true));
+                        word.appendChild(inner);
+                        node.parentNode.replaceChild(word, node);
+                        return;
+                    }
+
+                    if (node.tagName === 'EM' || node.tagName === 'SPAN' || node.tagName === 'I') {
+                        /* Treat the inline element itself as a single "word" so
+                           its styling (italic, brand colour) stays intact during
+                           the reveal animation. Preserve nested children (eg. a
+                           decorative .scribble inside the italic word). */
+                        const word = document.createElement('span');
+                        word.className = 'word';
+                        const useEm = node.tagName === 'EM' || node.tagName === 'I';
+                        const inner = document.createElement(useEm ? 'em' : 'span');
+                        if (node.className) inner.className = node.className;
+                        if (!useEm && /italic|brand-italic|ital/.test(node.className || '')) {
+                            inner.style.fontStyle = 'italic';
+                        }
+                        Array.from(node.childNodes).forEach(child => inner.appendChild(child.cloneNode(true)));
                         word.appendChild(inner);
                         node.parentNode.replaceChild(word, node);
                     } else {
@@ -186,6 +202,27 @@
             Array.from(el.childNodes).forEach(walk);
             // Assign --i for stagger delay
             el.querySelectorAll('.word').forEach((w, i) => w.style.setProperty('--i', i));
+        });
+
+        /* ------------------------------------------------------------
+           Hero word-cycler · slot-machine cross-fade
+           "software → films → tools → systems → loop"
+           ------------------------------------------------------------ */
+        document.querySelectorAll('.cycler').forEach(cycler => {
+            const items = cycler.querySelectorAll(':scope > span');
+            if (items.length < 2) return;
+            items[0].classList.add('is-current');
+            let idx = 0;
+            const HOLD = 2400;
+            setInterval(() => {
+                const leaving = items[idx];
+                idx = (idx + 1) % items.length;
+                const entering = items[idx];
+                leaving.classList.remove('is-current');
+                leaving.classList.add('is-leaving');
+                entering.classList.add('is-current');
+                setTimeout(() => leaving.classList.remove('is-leaving'), 700);
+            }, HOLD);
         });
 
         /* ------------------------------------------------------------
