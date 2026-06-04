@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Windikate logo · W mark
+    ─────────────────────────────────────────────────────────
+    This file is the single source of truth for the logo
+    across every page. It's used as a CSS mask-image, which
+    means the colour is inherited from the surrounding text.
+
+    Replace the path data below with your real wordmark/icon
+    when ready — anything black-on-transparent will work.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 90 64" fill="currentColor" aria-label="Windikate">
+    <!-- Left U -->
+    <path d="
+        M 0 0
+        L 12 0
+        L 12 50
+        Q 12 52 14 52
+        L 26 52
+        Q 28 52 28 50
+        L 28 0
+        L 40 0
+        L 40 50
+        Q 40 64 26 64
+        L 14 64
+        Q 0 64 0 50
+        Z" />
+    <!-- Right U -->
+    <path d="
+        M 50 0
+        L 62 0
+        L 62 50
+        Q 62 52 64 52
+        L 76 52
+        Q 78 52 78 50
+        L 78 0
+        L 90 0
+        L 90 50
+        Q 90 64 76 64
+        L 64 64
+        Q 50 64 50 50
+        Z" />
+</svg>

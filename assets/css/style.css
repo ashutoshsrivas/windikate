@@ -16,6 +16,21 @@ body {
     text-rendering: optimizeLegibility;
 }
 
+/* ---------- Logo mark ------------------------------------ */
+/* Renders /assets/images/logo.svg as a colour-aware shape.
+   Inherits its colour from the parent's `color`, so it goes
+   dark on cream in the nav, light on dark in the footer, and
+   light on the dark preloader badge — without us shipping
+   multiple SVG files. Swap the file and every instance
+   updates instantly. */
+.logo-mark {
+    display: inline-block;
+    width: 100%; height: 100%;
+    background-color: currentColor;
+    -webkit-mask: url('assets/images/logo.svg') center / contain no-repeat;
+            mask: url('assets/images/logo.svg') center / contain no-repeat;
+}
+
 /* ---------- Boot state ----------------------------------- */
 /* Page content is invisible & locked until the preloader signals 'is-loaded'.
    This prevents the flash of unstyled / half-loaded site the user reported. */

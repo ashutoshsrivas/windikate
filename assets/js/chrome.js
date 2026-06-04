@@ -24,7 +24,7 @@ function preloaderHtml() {
     <div id="preloader" class="preloader" aria-hidden="true">
         <div class="preloader__inner">
             <div class="preloader__logo">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7l3 11 3-7 2 7 3-11"/></svg>
+                <span class="logo-mark" style="width:32px;height:24px;color:#faf8f2;"></span>
             </div>
             <div class="preloader__progress" aria-hidden="true"><div class="preloader__bar"></div></div>
             <div class="preloader__caption"><strong>windikate</strong> / studio · <span data-loader-pct>loading</span></div>
@@ -54,9 +54,7 @@ function navHtml(activeKey) {
         <nav class="max-w-[1480px] mx-auto px-6 lg:px-10 py-5 flex items-center justify-between">
             <a href="index.html" class="flex items-center gap-2.5 group" aria-label="Windikate Studio home">
                 <span class="w-10 h-10 rounded-full bg-ink-900 flex items-center justify-center transition-transform group-hover:rotate-[18deg]">
-                    <svg viewBox="0 0 24 24" class="w-5 h-5 text-paper-100" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M4 7l3 11 3-7 2 7 3-11"/>
-                    </svg>
+                    <span class="logo-mark" style="width:18px;height:14px;color:#faf8f2;"></span>
                 </span>
                 <span class="font-display text-[22px] tracking-tight">windikate<span class="text-brand-500">.</span></span>
             </a>
