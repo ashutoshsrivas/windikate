@@ -24,7 +24,7 @@ function preloaderHtml() {
     <div id="preloader" class="preloader" aria-hidden="true">
         <div class="preloader__inner">
             <div class="preloader__logo">
-                <span class="logo-mark" style="width:32px;height:24px;color:#faf8f2;"></span>
+                <img src="assets/images/logo.jpeg" alt="Windikate" class="logo-img logo-img--dark" style="width:36px;" />
             </div>
             <div class="preloader__progress" aria-hidden="true"><div class="preloader__bar"></div></div>
             <div class="preloader__caption"><strong>windikate</strong> / studio · <span data-loader-pct>loading</span></div>
@@ -53,9 +53,7 @@ function navHtml(activeKey) {
     <header id="siteHeader" class="site-header sticky top-0 z-50">
         <nav class="max-w-[1480px] mx-auto px-6 lg:px-10 py-5 flex items-center justify-between">
             <a href="index.html" class="flex items-center gap-2.5 group" aria-label="Windikate Studio home">
-                <span class="w-10 h-10 rounded-full bg-ink-900 flex items-center justify-center transition-transform group-hover:rotate-[18deg]">
-                    <span class="logo-mark" style="width:18px;height:14px;color:#faf8f2;"></span>
-                </span>
+                <img src="assets/images/logo.jpeg" alt="Windikate" class="logo-img logo-img--light transition-transform group-hover:rotate-[8deg]" style="width:38px;" />
                 <span class="font-display text-[22px] tracking-tight">windikate<span class="text-brand-500">.</span></span>
             </a>
             <ul class="hidden lg:flex items-center gap-8">${desktop}</ul>

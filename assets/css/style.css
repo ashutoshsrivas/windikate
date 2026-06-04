@@ -17,19 +17,23 @@ body {
 }
 
 /* ---------- Logo mark ------------------------------------ */
-/* Renders /assets/images/logo.svg as a colour-aware shape.
-   Inherits its colour from the parent's `color`, so it goes
-   dark on cream in the nav, light on dark in the footer, and
-   light on the dark preloader badge — without us shipping
-   multiple SVG files. Swap the file and every instance
-   updates instantly. */
-.logo-mark {
-    display: inline-block;
-    width: 100%; height: 100%;
-    background-color: currentColor;
-    -webkit-mask: url('assets/images/logo.svg') center / contain no-repeat;
-            mask: url('assets/images/logo.svg') center / contain no-repeat;
+/* Plain <img> referencing assets/images/logo.jpeg. The JPG is
+   dark-on-white, so we use CSS blend modes to make the white
+   background invisible against any surface — no need for a
+   transparent PNG. */
+.logo-img {
+    display: block;
+    height: auto;
+    object-fit: contain;
 }
+/* On light surfaces (cream paper, white card) — multiply drops the
+   white JPG background, leaves the dark W intact. */
+.logo-img--light { mix-blend-mode: multiply; }
+
+/* On dark surfaces (preloader badge) — invert first so we get
+   white-on-black, then screen-blend so the new "black" disappears
+   into the dark surface, leaving the white mark glowing through. */
+.logo-img--dark  { filter: invert(1); mix-blend-mode: screen; }
 
 /* ---------- Boot state ----------------------------------- */
 /* Page content is invisible & locked until the preloader signals 'is-loaded'.
