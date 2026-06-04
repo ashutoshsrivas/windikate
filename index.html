@@ -11,21 +11,26 @@
     <script>document.write(navHtml('home'))</script>
 
     <!-- ============================ HERO ============================ -->
-    <section class="max-w-[1480px] mx-auto px-6 lg:px-10 pt-10 lg:pt-16 pb-10">
-        <div class="grid grid-cols-1 lg:grid-cols-[1.45fr_1fr] gap-12 items-end">
-            <div data-aos="fade-up">
-                <div class="flex items-center gap-3 mb-8">
-                    <span class="eyebrow">— Independent studio</span>
-                    <span class="hidden sm:inline-flex items-center gap-2 text-sm text-ink-500"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>Open for projects in Aug — Oct</span>
+    <section class="relative max-w-[1480px] mx-auto px-6 lg:px-10 pt-10 lg:pt-16 pb-10 kinetic">
+        <!-- Floating decorative typography (purely atmospheric) -->
+        <span class="float-accent text-[140px] hidden lg:block" style="top: 6%; right: 4%;">*</span>
+        <span class="float-accent text-[90px] hidden lg:block" data-delay="1" style="top: 38%; right: 14%;">+</span>
+        <span class="float-accent text-[120px] hidden lg:block" data-delay="2" style="bottom: 12%; left: 38%;">/</span>
+
+        <div class="relative grid grid-cols-1 lg:grid-cols-[1.45fr_1fr] gap-12 items-end z-10">
+            <div>
+                <div class="flex items-center gap-4 mb-8 reveal-up" style="--reveal-delay: 0">
+                    <span class="eyebrow eyebrow-dot">Independent studio · est. 2021</span>
+                    <span class="hidden sm:inline-flex items-center gap-2 text-sm text-ink-500">Open for projects · Aug — Oct</span>
                 </div>
 
                 <h1 class="font-display text-display-1 tracking-tight">
                     Brands, websites<br/>and software for<br/>teams who <em class="ital">care</em>.
                 </h1>
 
-                <div class="mt-8 flex flex-wrap items-center gap-3">
-                    <a href="work.html" class="btn-ink">See selected work<i class="bi bi-arrow-down-right"></i></a>
-                    <a href="contact.html" class="btn-paper">Start a project<i class="bi bi-arrow-up-right"></i></a>
+                <div class="mt-9 flex flex-wrap items-center gap-3 reveal-up" style="--reveal-delay: 700">
+                    <a href="work.html" data-magnet class="btn-ink"><span class="magnet-inner">See selected work<i class="bi bi-arrow-down-right"></i></span></a>
+                    <a href="contact.html" data-magnet class="btn-paper"><span class="magnet-inner">Start a project<i class="bi bi-arrow-up-right"></i></span></a>
                 </div>
             </div>
 
@@ -67,12 +72,12 @@
 
     <!-- ============================ SELECTED WORK ============================ -->
     <section class="max-w-[1480px] mx-auto px-6 lg:px-10 py-section">
-        <header class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6 mb-10" data-aos="fade-up">
+        <header class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6 mb-10 kinetic reveal-up">
             <div>
-                <div class="eyebrow mb-3">— Selected work · 2023 — 2026</div>
+                <div class="eyebrow-dot eyebrow mb-3">Selected work · 2023 — 2026</div>
                 <h2 class="font-display text-display-2 max-w-[680px]">A few things we’re <em class="ital">proud</em> of.</h2>
             </div>
-            <a href="work.html" class="btn-paper self-start sm:self-end">All 17 projects<i class="bi bi-arrow-up-right"></i></a>
+            <a href="work.html" data-magnet class="btn-paper self-start sm:self-end"><span class="magnet-inner">All projects<i class="bi bi-arrow-up-right"></i></span></a>
         </header>
 
         <div id="selected-work" class="proj-list"></div>
@@ -94,8 +99,8 @@
     <!-- ============================ WHAT WE DO ============================ -->
     <section class="max-w-[1480px] mx-auto px-6 lg:px-10 py-section">
         <div class="grid grid-cols-1 lg:grid-cols-[1fr_1.6fr] gap-12">
-            <header data-aos="fade-up">
-                <div class="eyebrow mb-3">— What we do</div>
+            <header class="kinetic reveal-up">
+                <div class="eyebrow eyebrow-dot mb-3">What we do</div>
                 <h2 class="font-display text-display-2">Four <em class="ital">things</em>,<br/>done well.</h2>
                 <p class="mt-6 text-ink-500 max-w-md leading-relaxed">We keep the team small on purpose. You speak to the people writing the code and drawing the type — no layers, no hand-offs.</p>
             </header>
@@ -140,12 +145,12 @@
     <!-- ============================ OUR PRODUCTS ============================ -->
     <section class="bg-paper-200/70 py-section -mx-0">
         <div class="max-w-[1480px] mx-auto px-6 lg:px-10">
-            <header class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6 mb-12" data-aos="fade-up">
+            <header class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6 mb-12 kinetic reveal-up">
                 <div>
-                    <div class="eyebrow mb-3">— In-house · Windikate Labs</div>
+                    <div class="eyebrow eyebrow-dot mb-3">In-house · Windikate Labs</div>
                     <h2 class="font-display text-display-2 max-w-[760px]">We also build <em class="ital">our own</em> things.</h2>
                 </div>
-                <a href="products.html" class="btn-paper self-start sm:self-end">All products<i class="bi bi-arrow-up-right"></i></a>
+                <a href="products.html" data-magnet class="btn-paper self-start sm:self-end"><span class="magnet-inner">All products<i class="bi bi-arrow-up-right"></i></span></a>
             </header>
 
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
@@ -196,8 +201,8 @@
     <!-- ============================ PROCESS / PHILOSOPHY ============================ -->
     <section class="max-w-[1480px] mx-auto px-6 lg:px-10 py-section">
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
-            <div class="lg:col-span-5" data-aos="fade-up">
-                <div class="eyebrow mb-3">— How we work</div>
+            <div class="lg:col-span-5 kinetic reveal-up">
+                <div class="eyebrow eyebrow-dot mb-3">How we work</div>
                 <h2 class="font-display text-display-2 leading-[1]">Small team,<br/><em class="ital">close</em> work,<br/>shipped quickly.</h2>
             </div>
             <div class="lg:col-span-7 space-y-8 text-[17px] leading-[1.7] text-ink-700" data-aos="fade-up" data-aos-delay="100">

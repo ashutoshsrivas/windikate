@@ -30,6 +30,9 @@ function preloaderHtml() {
             <div class="preloader__caption"><strong>windikate</strong> / studio · <span data-loader-pct>loading</span></div>
         </div>
     </div>
+    <div class="scroll-progress" aria-hidden="true"><div class="scroll-progress__bar"></div></div>
+    <div class="cursor-dot" aria-hidden="true"></div>
+    <div class="cursor-ring" aria-hidden="true"></div>
     <div class="site-content">`;
 }
 
@@ -58,7 +61,7 @@ function navHtml(activeKey) {
             </a>
             <ul class="hidden lg:flex items-center gap-8">${desktop}</ul>
             <div class="flex items-center gap-3">
-                <a href="contact.html" class="hidden sm:inline-flex btn-ink !py-2.5 !px-5 text-[14px]">Let’s talk<i class="bi bi-arrow-up-right"></i></a>
+                <a href="contact.html" data-magnet class="hidden sm:inline-flex btn-ink !py-2.5 !px-5 text-[14px]"><span class="magnet-inner">Let’s talk<i class="bi bi-arrow-up-right"></i></span></a>
                 <button id="mobileMenuBtn" class="lg:hidden text-2xl text-ink-700 hover:text-ink-900" aria-label="Open menu"><i class="bi bi-list"></i></button>
             </div>
         </nav>

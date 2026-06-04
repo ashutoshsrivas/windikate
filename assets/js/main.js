@@ -84,6 +84,150 @@
 
         if (window.AOS) AOS.init({ once: true, offset: 80, duration: 800, easing: 'ease-out-cubic', disable: 'mobile' });
 
+        /* ------------------------------------------------------------
+           Custom cursor — dot + ring, blend-difference for visibility,
+           skipped on touch / coarse-pointer devices entirely.
+           ------------------------------------------------------------ */
+        const isFinePointer = matchMedia('(pointer: fine)').matches
+                           && !matchMedia('(prefers-reduced-motion: reduce)').matches;
+        if (isFinePointer) {
+            const dot  = document.querySelector('.cursor-dot');
+            const ring = document.querySelector('.cursor-ring');
+            if (dot && ring) {
+                document.documentElement.classList.add('has-cursor');
+                let mx = innerWidth / 2, my = innerHeight / 2;
+                let rx = mx, ry = my;
+                window.addEventListener('mousemove', e => {
+                    mx = e.clientX; my = e.clientY;
+                    dot.style.transform = `translate3d(${mx}px, ${my}px, 0)`;
+                }, { passive: true });
+                (function loop() {
+                    rx += (mx - rx) * 0.18;
+                    ry += (my - ry) * 0.18;
+                    ring.style.transform = `translate3d(${rx}px, ${ry}px, 0)`;
+                    requestAnimationFrame(loop);
+                })();
+                const hoverSel = 'a, button, [data-cursor-hover], input, textarea, select, label';
+                document.querySelectorAll(hoverSel).forEach(el => {
+                    el.addEventListener('mouseenter', () => ring.classList.add('is-hover'));
+                    el.addEventListener('mouseleave', () => ring.classList.remove('is-hover'));
+                });
+                window.addEventListener('mousedown', () => ring.classList.add('is-active'));
+                window.addEventListener('mouseup',   () => ring.classList.remove('is-active'));
+                document.addEventListener('mouseleave', () => { dot.style.opacity = ring.style.opacity = '0'; });
+                document.addEventListener('mouseenter', () => { dot.style.opacity = ring.style.opacity = '1'; });
+            }
+        }
+
+        /* ------------------------------------------------------------
+           Scroll progress — gradient bar fills as user scrolls.
+           ------------------------------------------------------------ */
+        const progressBar = document.querySelector('.scroll-progress__bar');
+        if (progressBar) {
+            let ticking = false;
+            window.addEventListener('scroll', () => {
+                if (ticking) return;
+                ticking = true;
+                requestAnimationFrame(() => {
+                    const h = document.documentElement.scrollHeight - innerHeight;
+                    progressBar.style.width = h > 0 ? (scrollY / h * 100) + '%' : '0%';
+                    ticking = false;
+                });
+            }, { passive: true });
+        }
+
+        /* ------------------------------------------------------------
+           Kinetic typography — wrap each whitespace-separated word in
+           a masked span so it can rise from below on reveal. Run only
+           on .kinetic containers so we don't shred random headings.
+           ------------------------------------------------------------ */
+        document.querySelectorAll('.kinetic h1, .kinetic h2').forEach(el => {
+            if (el.dataset.split) return;
+            el.dataset.split = '1';
+            const walk = (node) => {
+                if (node.nodeType === Node.TEXT_NODE) {
+                    const frag = document.createDocumentFragment();
+                    const tokens = node.textContent.split(/(\s+)/);
+                    tokens.forEach(t => {
+                        if (!t) return;
+                        if (/^\s+$/.test(t)) frag.appendChild(document.createTextNode(t));
+                        else {
+                            const word = document.createElement('span');
+                            word.className = 'word';
+                            const inner = document.createElement('span');
+                            inner.textContent = t;
+                            word.appendChild(inner);
+                            frag.appendChild(word);
+                        }
+                    });
+                    node.parentNode.replaceChild(frag, node);
+                } else if (node.nodeType === Node.ELEMENT_NODE) {
+                    /* Don't recurse into <br>, but unwrap content of inline
+                       elements (em / span) so their text gets word-split too. */
+                    if (node.tagName === 'BR') return;
+                    if (node.tagName === 'EM' || node.tagName === 'SPAN' || node.tagName === 'I') {
+                        // Treat the inline element itself as a single "word" so its
+                        // styling (italic, brand colour) stays intact during the
+                        // reveal animation.
+                        const text = node.textContent;
+                        const inner = document.createElement('em');
+                        inner.style.fontStyle = node.tagName === 'EM' || node.tagName === 'I' ? 'italic' : 'normal';
+                        inner.className = node.className;
+                        inner.textContent = text;
+                        const word = document.createElement('span');
+                        word.className = 'word';
+                        word.appendChild(inner);
+                        node.parentNode.replaceChild(word, node);
+                    } else {
+                        Array.from(node.childNodes).forEach(walk);
+                    }
+                }
+            };
+            Array.from(el.childNodes).forEach(walk);
+            // Assign --i for stagger delay
+            el.querySelectorAll('.word').forEach((w, i) => w.style.setProperty('--i', i));
+        });
+
+        /* ------------------------------------------------------------
+           Magnetic buttons — gently pull toward cursor on hover.
+           ------------------------------------------------------------ */
+        if (isFinePointer) {
+            document.querySelectorAll('[data-magnet]').forEach(btn => {
+                const STRENGTH = 0.22;
+                btn.addEventListener('mousemove', e => {
+                    const r = btn.getBoundingClientRect();
+                    const dx = (e.clientX - (r.left + r.width / 2)) * STRENGTH;
+                    const dy = (e.clientY - (r.top  + r.height / 2)) * STRENGTH;
+                    btn.style.transform = `translate3d(${dx}px, ${dy}px, 0)`;
+                    const inner = btn.querySelector('.magnet-inner');
+                    if (inner) inner.style.transform = `translate3d(${dx * 0.3}px, ${dy * 0.3}px, 0)`;
+                });
+                btn.addEventListener('mouseleave', () => {
+                    btn.style.transform = '';
+                    const inner = btn.querySelector('.magnet-inner');
+                    if (inner) inner.style.transform = '';
+                });
+            });
+        }
+
+        /* ------------------------------------------------------------
+           Reveal-up + mask-reveal on scroll.
+           Replaces AOS for new .reveal-up / .reveal-mask elements.
+           ------------------------------------------------------------ */
+        const revealEls = document.querySelectorAll('.reveal-up, .reveal-mask');
+        if (revealEls.length) {
+            const io = new IntersectionObserver(entries => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('in-view');
+                        io.unobserve(entry.target);
+                    }
+                });
+            }, { threshold: 0.12, rootMargin: '0px 0px -8% 0px' });
+            revealEls.forEach(el => io.observe(el));
+        }
+
+
         // Fade in any image with data-fade or inside .work-card__media
         document.querySelectorAll('img[data-fade], .work-card__media img').forEach(img => {
             if (img.complete && img.naturalWidth > 0) img.classList.add('is-loaded');
