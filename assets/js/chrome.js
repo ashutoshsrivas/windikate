@@ -16,6 +16,27 @@ function backgroundLayers() {
     return '';
 }
 
+/* Full-page preloader. Hidden once fonts + images have loaded
+   (managed in main.js). Emitted first so it covers the page from
+   the very first paint. */
+function preloaderHtml() {
+    return `
+    <div id="preloader" class="preloader" aria-hidden="true">
+        <div class="preloader__inner">
+            <div class="preloader__logo">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7l3 11 3-7 2 7 3-11"/></svg>
+            </div>
+            <div class="preloader__progress" aria-hidden="true"><div class="preloader__bar"></div></div>
+            <div class="preloader__caption"><strong>windikate</strong> / studio · <span data-loader-pct>loading</span></div>
+        </div>
+    </div>
+    <div class="site-content">`;
+}
+
+function siteContentClose() {
+    return `</div>`;
+}
+
 function navHtml(activeKey) {
     const desktop = NAV_LINKS.map(item => {
         const active = item.key === activeKey;
@@ -28,6 +49,7 @@ function navHtml(activeKey) {
     }).join('');
 
     return `
+    ${preloaderHtml()}
     <header id="siteHeader" class="site-header sticky top-0 z-50">
         <nav class="max-w-[1480px] mx-auto px-6 lg:px-10 py-5 flex items-center justify-between">
             <a href="index.html" class="flex items-center gap-2.5 group" aria-label="Windikate Studio home">
@@ -55,6 +77,7 @@ function navHtml(activeKey) {
 
 function footerHtml() {
     return `
+    ${siteContentClose()}
     <footer class="mt-section">
         <div class="ink-section rounded-t-[40px]">
             <div class="max-w-[1480px] mx-auto px-6 lg:px-10 pt-20 pb-12">

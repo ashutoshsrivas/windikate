@@ -172,8 +172,8 @@ function workCardHtml(p, featured = false) {
     const screenshotUrl = p.external ? null : projectScreenshot(p.url);
     const aspect = featured ? 'aspect-[16/11]' : 'aspect-[16/10]';
     const mediaInner = screenshotUrl
-        ? `<img src="${screenshotUrl}" alt="${p.title} screenshot" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'" />`
-        : `<div class="flex items-center justify-center w-full h-full"><i class="bi bi-film text-5xl text-ink-300"></i></div>`;
+        ? `<img src="${screenshotUrl}" alt="${p.title} screenshot" loading="lazy" decoding="async" referrerpolicy="no-referrer" data-fade onerror="this.classList.add('is-loaded');this.style.display='none'" />`
+        : `<div class="flex items-center justify-center w-full h-full relative z-[1]"><i class="bi bi-film text-5xl text-ink-300"></i></div>`;
 
     const backendChip = p.backend
         ? `<a href="${p.backend}" target="_blank" rel="noreferrer" class="cat-chip hover:bg-ink-900 hover:text-paper-100 transition-colors" onclick="event.stopPropagation()"><i class="bi bi-database"></i>Backend</a>`
@@ -198,7 +198,7 @@ function workCardHtml(p, featured = false) {
                 <p class="mt-1.5 text-sm text-ink-500 leading-relaxed">${p.summary}</p>
             </div>
             <div class="shrink-0 flex flex-col items-end gap-2">
-                <span class="w-9 h-9 rounded-full border hairline-strong border flex items-center justify-center group-hover:bg-ink-900 group-hover:text-paper-100 group-hover:border-ink-900 transition-colors">
+                <span class="w-10 h-10 rounded-full border hairline-strong flex items-center justify-center group-hover:bg-ink-900 group-hover:text-paper-100 group-hover:border-ink-900 transition-colors shrink-0">
                     <i class="bi bi-arrow-up-right"></i>
                 </span>
                 ${backendChip}

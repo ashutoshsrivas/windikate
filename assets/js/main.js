@@ -4,9 +4,94 @@
 (function () {
     'use strict';
 
+    /* ------------------------------------------------------------
+     * Preloader — runs as early as possible (NOT waiting on DOMReady)
+     * so we can mark resources the moment they finish loading.
+     * Reveals the page when fonts + visible images are in.
+     * ------------------------------------------------------------ */
+    bootPreloader();
+
+    function bootPreloader() {
+        const start = performance.now();
+        const FIRST_VISIT = !sessionStorage.getItem('wdk.seen');
+        const MIN_SHOW = FIRST_VISIT ? 700 : 280;
+        const MAX_SHOW = 5000;
+
+        let bar, captionPct;
+        let pct = 6;
+
+        const setPct = p => {
+            pct = Math.min(100, Math.max(pct, p));
+            if (bar)        bar.style.width = pct + '%';
+            if (captionPct) captionPct.textContent = pct >= 100 ? 'ready' : `loading · ${Math.round(pct)}%`;
+        };
+
+        // Slow heartbeat so the bar always feels alive even on a cached load
+        const heartbeat = setInterval(() => setPct(pct + (pct < 70 ? 3 : 1)), 90);
+
+        function attachToDom() {
+            bar        = document.querySelector('#preloader .preloader__bar');
+            captionPct = document.querySelector('[data-loader-pct]');
+            setPct(pct);
+
+            // Image progress
+            const imgs = Array.from(document.images);
+            const total = imgs.length + 2; // +fonts +DOMContentLoaded
+            let done = 0;
+            const bump = () => { done++; setPct(15 + (done / total) * 75); };
+
+            if (document.readyState !== 'loading') bump();
+            else document.addEventListener('DOMContentLoaded', bump, { once: true });
+
+            if (document.fonts && document.fonts.ready) {
+                document.fonts.ready.then(bump).catch(bump);
+            } else { bump(); }
+
+            imgs.forEach(img => {
+                if (img.complete) bump();
+                else {
+                    img.addEventListener('load',  bump, { once: true });
+                    img.addEventListener('error', bump, { once: true });
+                }
+            });
+        }
+        if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', attachToDom, { once: true });
+        else attachToDom();
+
+        function finish() {
+            clearInterval(heartbeat);
+            setPct(100);
+            const elapsed = performance.now() - start;
+            const wait = Math.max(0, MIN_SHOW - elapsed);
+            setTimeout(() => {
+                const overlay = document.getElementById('preloader');
+                document.documentElement.classList.add('is-loaded');
+                if (overlay) overlay.classList.add('is-done');
+                sessionStorage.setItem('wdk.seen', '1');
+                // Remove DOM node after fade completes (so it doesn't trap focus)
+                if (overlay) setTimeout(() => overlay.remove(), 900);
+            }, wait);
+        }
+
+        if (document.readyState === 'complete') finish();
+        else window.addEventListener('load', finish, { once: true });
+        setTimeout(finish, MAX_SHOW); // hard ceiling
+    }
+
+    /* ------------------------------------------------------------ */
+
     document.addEventListener('DOMContentLoaded', () => {
 
-        if (window.AOS) AOS.init({ once: true, offset: 80, duration: 800, easing: 'ease-out-cubic' });
+        if (window.AOS) AOS.init({ once: true, offset: 80, duration: 800, easing: 'ease-out-cubic', disable: 'mobile' });
+
+        // Fade in any image with data-fade or inside .work-card__media
+        document.querySelectorAll('img[data-fade], .work-card__media img').forEach(img => {
+            if (img.complete && img.naturalWidth > 0) img.classList.add('is-loaded');
+            else {
+                img.addEventListener('load',  () => img.classList.add('is-loaded'), { once: true });
+                img.addEventListener('error', () => img.classList.add('is-loaded'), { once: true });
+            }
+        });
 
         // Mobile menu
         const btn = document.getElementById('mobileMenuBtn');
