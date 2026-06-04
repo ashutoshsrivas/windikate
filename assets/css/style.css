@@ -156,80 +156,135 @@ body::before {
 .marquee__item  { display: inline-flex; align-items: center; gap: 1.25rem; }
 .marquee__item .dot { width: 8px; height: 8px; border-radius: 999px; background: currentColor; opacity: .6; }
 
-/* ---------- Project / work card -------------------------- */
-.work-card {
-    position: relative; overflow: hidden;
-    border-radius: 24px;
-    background: #fff;
-    border: 1px solid rgba(12,10,9,0.06);
-    transition: transform .5s cubic-bezier(.2,.7,.2,1), box-shadow .5s ease, border-color .3s ease;
-}
-.work-card:hover { transform: translateY(-6px); box-shadow: 0 30px 80px -30px rgba(12,10,9,0.28); border-color: rgba(12,10,9,0.15); }
+/* ---------- Editorial project row ------------------------ */
+/* A magazine-style index row. Renders beautifully with zero images.
+   Screenshot thumbnail (if it eventually arrives from thum.io) floats
+   in on hover from the right. */
 
-.work-card__media {
-    position: relative; aspect-ratio: 16 / 10; overflow: hidden;
-    background-color: var(--accent, #f3efe5);
+.proj-list { border-top: 1px solid rgba(12,10,9,0.12); }
+
+.proj-row {
+    position: relative;
+    display: grid;
+    grid-template-columns: 60px 1fr auto 48px;
+    gap: clamp(1rem, 2.5vw, 2.5rem);
+    align-items: center;
+    padding: 1.75rem 0;
+    border-bottom: 1px solid rgba(12,10,9,0.12);
+    text-decoration: none; color: inherit;
+    transition: padding 0.55s cubic-bezier(.5,0,.2,1),
+                background-color 0.55s cubic-bezier(.5,0,.2,1);
+}
+.proj-row:hover {
+    background-color: var(--accent, transparent);
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
 }
 
-/* Typographic fallback layer — always rendered underneath the screenshot,
-   so a missing or slow thum.io image never leaves a card looking empty. */
-.work-card__fallback {
-    position: absolute; inset: 0; z-index: 0;
-    padding: 24px 26px;
-    display: flex; flex-direction: column; justify-content: space-between;
-    color: #0c0a09; pointer-events: none;
+.proj-row__num {
+    font: 500 12px/1 'JetBrains Mono', ui-monospace, monospace;
+    letter-spacing: 0.14em;
+    color: rgba(12,10,9,0.45);
 }
-.work-card__fallback-meta {
-    font: 500 10px/1 'JetBrains Mono', ui-monospace, monospace;
-    letter-spacing: 0.2em; text-transform: uppercase;
-    opacity: 0.55;
-    display: flex; gap: 12px; align-items: center;
-}
-.work-card__fallback-meta .dot { width: 4px; height: 4px; border-radius: 999px; background: currentColor; opacity: 0.7; }
-.work-card__fallback-title {
+
+.proj-row__title h3 {
     font-family: 'Fraunces', ui-serif, serif;
     font-weight: 500;
-    font-size: clamp(26px, 2.4vw, 38px);
-    line-height: 1.02; letter-spacing: -0.02em;
-    margin-top: auto;
-    max-width: 90%;
+    font-size: clamp(28px, 4.4vw, 64px);
+    line-height: 0.98;
+    letter-spacing: -0.022em;
+    margin: 0;
+    transition: transform 0.5s cubic-bezier(.5,0,.2,1),
+                font-style 0.3s ease,
+                color 0.3s ease;
 }
-.work-card__fallback-icon {
-    font-size: 26px; opacity: 0.5;
+.proj-row:hover .proj-row__title h3 {
+    transform: translateX(18px);
+    font-style: italic;
+}
+.proj-row__title p {
+    margin: 10px 0 0;
+    font-size: 13.5px; line-height: 1.55;
+    color: rgba(12,10,9,0.55);
+    max-width: 54ch;
+    transition: transform 0.5s cubic-bezier(.5,0,.2,1);
+}
+.proj-row:hover .proj-row__title p { transform: translateX(18px); }
+
+.proj-row__meta {
+    display: flex; flex-direction: column;
+    gap: 10px; align-items: flex-end; text-align: right;
+}
+.proj-row__year {
+    font: 500 12px/1 'JetBrains Mono', ui-monospace, monospace;
+    letter-spacing: 0.12em;
+    color: rgba(12,10,9,0.6);
 }
 
-.work-card__media img {
+/* Floating hover preview — appears from the right with a slight tilt.
+   Background uses the accent so even a 502 from thum.io still looks
+   intentional. The screenshot fades in on top if it arrives. */
+.proj-row__preview {
+    position: absolute;
+    right: 110px; top: 50%;
+    width: 240px; height: 152px;
+    transform: translate(28px, -50%) scale(0.92) rotate(-2deg);
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.45s ease,
+                transform 0.6s cubic-bezier(.5,0,.2,1);
+    z-index: 2;
+    border-radius: 14px; overflow: hidden;
+    box-shadow: 0 30px 70px -16px rgba(12,10,9,0.45);
+}
+.proj-row:hover .proj-row__preview {
+    opacity: 1;
+    transform: translate(0, -50%) scale(1) rotate(-2deg);
+}
+.proj-row__preview-inner {
+    position: relative; width: 100%; height: 100%;
+    background-color: var(--accent, #f3efe5);
+    display: grid; place-items: center;
+    color: rgba(12,10,9,0.55);
+    font-family: 'Fraunces', ui-serif, serif;
+    font-size: 18px; text-align: center; padding: 0 12px;
+}
+.proj-row__preview img {
     position: absolute; inset: 0; z-index: 1;
     width: 100%; height: 100%;
     object-fit: cover; object-position: top center;
-    transition: transform 1.2s cubic-bezier(.2,.7,.2,1), opacity .8s cubic-bezier(.5,0,.2,1);
-    opacity: 0;
+    opacity: 0; transition: opacity 0.5s ease;
 }
-.work-card__media img.is-loaded { opacity: 1; }
-.work-card:hover .work-card__media img.is-loaded { transform: scale(1.05); }
+.proj-row__preview img.is-loaded { opacity: 1; }
 
-/* When the image hasn't loaded yet, keep a subtle breathing shimmer.
-   The :has() check disables it the moment an image lands. */
-.work-card__media::after {
-    content: ''; position: absolute; inset: 0; z-index: 2;
-    background: linear-gradient(180deg, transparent 55%, rgba(12,10,9,0.30) 100%);
-    opacity: 0; transition: opacity .4s ease; pointer-events: none;
+.proj-row__arrow {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 44px; height: 44px;
+    border-radius: 999px;
+    border: 1px solid rgba(12,10,9,0.20);
+    font-size: 16px; color: #0c0a09;
+    transition: transform 0.5s cubic-bezier(.5,0,.2,1),
+                background-color 0.3s ease, color 0.3s ease,
+                border-color 0.3s ease;
 }
-.work-card:hover .work-card__media::after { opacity: 1; }
-.work-card__media::after {
-    content: ''; position: absolute; inset: 0;
-    background: linear-gradient(180deg, transparent 50%, rgba(12,10,9,0.35) 100%);
-    opacity: 0; transition: opacity .4s ease; pointer-events: none;
+.proj-row:hover .proj-row__arrow {
+    background: #0c0a09; color: #faf8f2;
+    transform: rotate(-45deg);
+    border-color: #0c0a09;
 }
-.work-card:hover .work-card__media::after { opacity: 1; }
 
-.work-card__overlay {
-    position: absolute; left: 20px; right: 20px; bottom: 20px;
-    transform: translateY(8px); opacity: 0;
-    transition: transform .4s ease, opacity .4s ease;
-    color: #fff; z-index: 3;
+@media (max-width: 900px) {
+    .proj-row {
+        grid-template-columns: 38px 1fr 36px;
+        padding: 1.25rem 0;
+        gap: 0.85rem;
+    }
+    .proj-row:hover { padding-left: 0; padding-right: 0; }
+    .proj-row__meta, .proj-row__preview { display: none; }
+    .proj-row__title p { display: none; }
+    .proj-row__title h3 { font-size: clamp(22px, 6.4vw, 34px); }
+    .proj-row__arrow { width: 36px; height: 36px; }
+    .proj-row:hover .proj-row__title h3 { transform: translateX(8px); }
 }
-.work-card:hover .work-card__overlay { transform: translateY(0); opacity: 1; }
 
 .cat-chip {
     display: inline-flex; align-items: center; gap: 6px;

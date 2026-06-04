@@ -67,7 +67,7 @@
 
     <!-- ============================ SELECTED WORK ============================ -->
     <section class="max-w-[1480px] mx-auto px-6 lg:px-10 py-section">
-        <header class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6 mb-12" data-aos="fade-up">
+        <header class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6 mb-10" data-aos="fade-up">
             <div>
                 <div class="eyebrow mb-3">— Selected work · 2023 — 2026</div>
                 <h2 class="font-display text-display-2 max-w-[680px]">A few things we’re <em class="ital">proud</em> of.</h2>
@@ -75,14 +75,18 @@
             <a href="work.html" class="btn-paper self-start sm:self-end">All 17 projects<i class="bi bi-arrow-up-right"></i></a>
         </header>
 
-        <div id="selected-work" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
+        <div id="selected-work" class="proj-list"></div>
 
         <script>
-            // Feature 4 of the strongest, varied projects on the homepage
-            const featured = ['covahive', 'pinnacle-square', 'kasa-heavens', 'twizzle-media-house'];
-            const out = featured.map(slug => PROJECTS.find(p => p.slug === slug)).filter(Boolean).map((p, i) => workCardHtml(p, true, i + 1)).join('');
-            document.getElementById('selected-work').innerHTML = out;
-            /* Homepage cards are always above the fold — load all eagerly. */
+            // Feature 5 of the strongest, varied projects on the homepage
+            const featured = ['covahive', 'pinnacle-square', 'kasa-heavens', 'win-school', 'twizzle-media-house'];
+            const rows = featured
+                .map(slug => PROJECTS.find(p => p.slug === slug))
+                .filter(Boolean)
+                .map((p, i) => projectRowHtml(p, i + 1))
+                .join('');
+            document.getElementById('selected-work').innerHTML = rows;
+            // Homepage preview thumbnails are above the fold — load all eagerly
             document.querySelectorAll('#selected-work img').forEach(img => { img.loading = 'eager'; img.fetchPriority = 'high'; });
         </script>
     </section>

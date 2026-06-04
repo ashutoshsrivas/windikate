@@ -167,57 +167,36 @@ function projectScreenshot(url, w = 900, h = 560) {
     return `https://image.thum.io/get/width/${w}/crop/${h}/noanimate/maxAge/168/https://${clean}`;
 }
 
-/* Build a single work-card HTML block. featured=true uses a tall layout. */
-function workCardHtml(p, featured = false, indexHint = null) {
-    const screenshotUrl = p.external ? null : projectScreenshot(p.url);
-    const aspect        = featured ? 'aspect-[16/11]' : 'aspect-[16/10]';
-
-    /* Typographic fallback — always rendered, behind the image.
-       If the screenshot never loads, the card stays meaningful. */
-    const fallback = `
-        <div class="work-card__fallback">
-            <div class="work-card__fallback-meta">
-                <span>${CAT_LABEL[p.cat] || p.category}</span>
-                <span class="dot"></span>
-                <span>${p.year}</span>
-                ${indexHint != null ? `<span class="dot"></span><span>${String(indexHint).padStart(2,'0')}</span>` : ''}
-            </div>
-            <div class="work-card__fallback-title">${p.title}</div>
-        </div>`;
-
+/* Build a single editorial project row.
+ * Used on the homepage (Selected Work strip) and on /work.html.
+ * Designed to read beautifully with no images — screenshot is a
+ * delightful hover detail, not a load-bearing element. */
+function projectRowHtml(p, index = 1) {
+    const screenshotUrl = p.external ? null : projectScreenshot(p.url, 480, 304);
     const image = screenshotUrl
-        ? `<img src="${screenshotUrl}" alt="${p.title} screenshot" loading="lazy" decoding="async" referrerpolicy="no-referrer" data-fade onerror="this.remove()" />`
-        : '';
-
-    const backendChip = p.backend
-        ? `<a href="${p.backend}" target="_blank" rel="noreferrer" class="cat-chip hover:bg-ink-900 hover:text-paper-100 transition-colors" onclick="event.stopPropagation()"><i class="bi bi-database"></i>Backend</a>`
+        ? `<img src="${screenshotUrl}" alt="${p.title}" loading="lazy" decoding="async" referrerpolicy="no-referrer" data-fade onerror="this.remove()" />`
         : '';
 
     return `
-    <a href="${p.url}" target="_blank" rel="noreferrer" data-cat="${p.cat}" class="work-card block group">
-        <div class="work-card__media ${aspect}" style="--accent: ${p.accent}">
-            ${fallback}
-            ${image}
-            <div class="work-card__overlay">
-                <div class="text-xs font-mono uppercase tracking-wider opacity-80">${p.services.join(' · ')}</div>
-                <div class="mt-2 text-base font-medium flex items-center gap-2">Visit site<i class="bi bi-arrow-up-right"></i></div>
-            </div>
+    <a href="${p.url}" target="_blank" rel="noreferrer" data-cat="${p.cat}" class="proj-row" style="--accent: ${p.accent}">
+        <span class="proj-row__num">${String(index).padStart(2, '0')}</span>
+        <div class="proj-row__title">
+            <h3>${p.title}</h3>
+            <p>${p.summary}</p>
         </div>
-        <div class="p-6 flex items-start justify-between gap-4">
-            <div class="min-w-0">
-                <div class="flex items-center gap-2 mb-1.5">
-                    <span class="cat-chip" data-cat="${p.cat}">${CAT_LABEL[p.cat]}</span>
-                    <span class="text-xs font-mono text-ink-500">${p.year}</span>
-                </div>
-                <h3 class="font-display text-2xl tracking-tight leading-tight">${p.title}</h3>
-                <p class="mt-1.5 text-sm text-ink-500 leading-relaxed">${p.summary}</p>
-            </div>
-            <div class="shrink-0 flex flex-col items-end gap-2">
-                <span class="w-10 h-10 rounded-full border hairline-strong flex items-center justify-center group-hover:bg-ink-900 group-hover:text-paper-100 group-hover:border-ink-900 transition-colors shrink-0">
-                    <i class="bi bi-arrow-up-right"></i>
-                </span>
-                ${backendChip}
-            </div>
+        <div class="proj-row__meta">
+            <span class="cat-chip" data-cat="${p.cat}">${CAT_LABEL[p.cat]}</span>
+            <span class="proj-row__year">${p.year}</span>
         </div>
+        <div class="proj-row__preview" aria-hidden="true">
+            <div class="proj-row__preview-inner">${p.title}${image}</div>
+        </div>
+        <span class="proj-row__arrow"><i class="bi bi-arrow-right"></i></span>
     </a>`;
+}
+
+/* Legacy alias — anywhere we still call workCardHtml(), give them rows.
+   Lets us roll out incrementally without breaking other pages. */
+function workCardHtml(p, _featured, index = null) {
+    return projectRowHtml(p, index || 1);
 }

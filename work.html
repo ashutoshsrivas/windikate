@@ -32,45 +32,23 @@
         </div>
     </section>
 
-    <!-- ============================ GRID ============================ -->
+    <!-- ============================ LIST ============================ -->
     <section class="max-w-[1480px] mx-auto px-6 lg:px-10 pb-section">
-        <div id="project-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+        <div id="project-list" class="proj-list"></div>
     </section>
 
     <script>
         document.getElementById('proj-count').textContent = PROJECTS.length;
-        document.getElementById('project-grid').innerHTML = PROJECTS.map((p, i) => workCardHtml(p, false, i + 1)).join('');
-        /* The first six are above the fold on most screens — load eagerly
-           so the user isn't staring at fallback titles when the page reveals. */
-        document.querySelectorAll('#project-grid .work-card').forEach((card, i) => {
-            if (i < 6) {
-                const img = card.querySelector('img');
+        document.getElementById('project-list').innerHTML = PROJECTS.map((p, i) => projectRowHtml(p, i + 1)).join('');
+        /* Above-the-fold rows get an eager-loaded preview thumb so the
+           hover interaction feels instant. The rest lazy-load. */
+        document.querySelectorAll('#project-list .proj-row').forEach((row, i) => {
+            if (i < 4) {
+                const img = row.querySelector('img');
                 if (img) { img.loading = 'eager'; img.fetchPriority = 'high'; }
             }
         });
     </script>
-
-    <!-- ============================ INDEX TABLE ============================ -->
-    <section class="max-w-[1480px] mx-auto px-6 lg:px-10 py-section">
-        <header class="mb-8" data-aos="fade-up">
-            <div class="eyebrow mb-3">— Index</div>
-            <h2 class="font-display text-display-3">Quick directory.</h2>
-        </header>
-        <div class="border-t hairline">
-            <ul id="proj-index" class="divide-y hairline"></ul>
-        </div>
-        <script>
-            document.getElementById('proj-index').innerHTML = PROJECTS.map((p, i) => `
-                <li class="grid grid-cols-[40px_1.8fr_1fr_auto] sm:grid-cols-[60px_1.6fr_1fr_1fr_auto] items-center gap-4 py-4 group">
-                    <span class="text-xs font-mono text-ink-300">${String(i + 1).padStart(2, '0')}</span>
-                    <a href="${p.url}" target="_blank" rel="noreferrer" class="font-display text-lg tracking-tight group-hover:text-brand-600 transition-colors">${p.title}</a>
-                    <span class="text-sm text-ink-500 hidden sm:block">${p.category}</span>
-                    <span class="text-xs font-mono text-ink-500 hidden sm:block">${p.year}</span>
-                    <a href="${p.url}" target="_blank" rel="noreferrer" class="text-sm text-ink-700 hover:text-ink-900 inline-flex items-center gap-1.5">Visit<i class="bi bi-arrow-up-right"></i></a>
-                </li>
-            `).join('');
-        </script>
-    </section>
 
     <!-- ============================ CTA ============================ -->
     <section class="max-w-[1480px] mx-auto px-6 lg:px-10 pb-section">
