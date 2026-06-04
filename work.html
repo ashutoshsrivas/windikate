@@ -105,13 +105,30 @@
             // Update preview card
             preview.innerHTML = projectPreviewCardHtml(project);
 
-            // Fade in the new screenshot (if it loads)
-            const img = preview.querySelector('img[data-fade]');
+            const media  = preview.querySelector('.preview-card__media');
+            const img    = preview.querySelector('img[data-fade]');
+
             if (img) {
-                if (img.complete && img.naturalWidth > 0) img.classList.add('is-loaded');
-                else {
-                    img.addEventListener('load',  () => img.classList.add('is-loaded'), { once: true });
-                    img.addEventListener('error', () => img.classList.add('is-loaded'), { once: true });
+                // Mark "loading" — the loader fades in after a 300 ms delay
+                // (managed in CSS), so cached images that resolve instantly
+                // never flash the spinner at all.
+                if (img.complete && img.naturalWidth > 0) {
+                    img.classList.add('is-loaded');
+                } else {
+                    media && media.classList.add('is-loading');
+                    const settle = () => {
+                        img.classList.add('is-loaded');
+                        media && media.classList.remove('is-loading');
+                    };
+                    img.addEventListener('load',  settle, { once: true });
+                    img.addEventListener('error', () => {
+                        // Could not load — drop the broken img and stop showing
+                        // the loader. The typography fallback remains in place.
+                        img.remove();
+                        media && media.classList.remove('is-loading');
+                    }, { once: true });
+                    // Safety timeout — never leave the loader spinning forever
+                    setTimeout(() => { media && media.classList.remove('is-loading'); }, 6000);
                 }
             }
 
@@ -141,6 +158,9 @@
 
         // --- 4 · Initial state -------------------------------
         showPreview(PROJECTS[0].slug, 'init');
+
+        // --- 4.5 · Background-warm every project screenshot --
+        preloadProjectScreenshots();
 
         // --- 5 · Hover sync ---------------------------------
         list.addEventListener('mouseover', e => {

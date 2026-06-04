@@ -237,7 +237,6 @@ function projectRowHtml(p, index = 1) {
         </div>
         <div class="proj-row__meta">
             <span class="cat-chip" data-cat="${p.cat}">${CAT_LABEL[p.cat]}</span>
-            <span class="proj-row__year">${p.year}</span>
         </div>
         <div class="proj-row__preview" aria-hidden="true">
             <div class="proj-row__preview-inner">${p.title}${image}</div>
@@ -270,11 +269,12 @@ function projectIndexRowHtml(p, index = 1) {
 
 /* Big preview card — fills the sticky pane on the right of /work.html.
    The card renders project name + meta as the primary content; if the
-   screenshot returns from thum.io it fades in over the colour panel. */
+   screenshot returns from thum.io it fades in over the colour panel.
+   A small loading indicator fades in only when the wait exceeds 300ms. */
 function projectPreviewCardHtml(p) {
-    const screenshotUrl = p.external ? null : projectScreenshot(p.url, 1100, 690);
+    const screenshotUrl = p.external ? null : projectScreenshot(p.url, 900, 560);
     const image = screenshotUrl
-        ? `<img src="${screenshotUrl}" alt="${p.title}" loading="eager" decoding="async" fetchpriority="high" referrerpolicy="no-referrer" data-fade onerror="this.remove()" />`
+        ? `<img src="${screenshotUrl}" alt="${p.title}" loading="eager" decoding="async" fetchpriority="high" referrerpolicy="no-referrer" data-fade />`
         : '';
     const backendChip = p.backend
         ? `<a href="${p.backend}" target="_blank" rel="noreferrer" class="cat-chip hover:bg-ink-900 hover:text-paper-100 transition-colors"><i class="bi bi-database"></i>Backend</a>`
@@ -287,6 +287,7 @@ function projectPreviewCardHtml(p) {
                     <div class="preview-card__title">${p.title}</div>
                 </div>
                 ${image}
+                ${screenshotUrl ? `<div class="preview-card__loader" aria-label="Loading preview"><span></span><span></span><span></span></div>` : ''}
             </div>
             <div class="preview-card__details">
                 <div class="preview-card__meta">
@@ -302,4 +303,32 @@ function projectPreviewCardHtml(p) {
                 </div>
             </div>
         </div>`;
+}
+
+/* Background-warm every project's thum.io screenshot on idle so the
+   browser cache has them ready by the time the user hovers a row.
+   Spaced out one at a time to avoid hammering thum.io's free tier. */
+function preloadProjectScreenshots() {
+    if (typeof PROJECTS === 'undefined') return;
+    const queue = PROJECTS.filter(p => !p.external);
+    let i = 0;
+    const schedule = (cb) => 'requestIdleCallback' in window
+        ? requestIdleCallback(cb, { timeout: 2000 })
+        : setTimeout(cb, 400);
+
+    const preloadNext = () => {
+        if (i >= queue.length) return;
+        const p = queue[i++];
+        const img = new Image();
+        img.referrerPolicy = 'no-referrer';
+        img.decoding = 'async';
+        img.src = projectScreenshot(p.url, 900, 560);
+        // Move to next once this one settles (or after 1.2 s, whichever first)
+        let settled = false;
+        const next = () => { if (!settled) { settled = true; schedule(preloadNext); } };
+        img.addEventListener('load',  next, { once: true });
+        img.addEventListener('error', next, { once: true });
+        setTimeout(next, 1200);
+    };
+    setTimeout(preloadNext, 1200); // start after preloader hides
 }
