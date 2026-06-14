@@ -14,6 +14,7 @@ adminRouter.delete('/invites/:id',       ctl.revokeInvite);
 adminRouter.get   ('/',                  ctl.listPersonas);
 adminRouter.get   ('/:id',               ctl.getPersona);
 adminRouter.post  ('/:id/approve',       ctl.approvePersona);
+adminRouter.post  ('/:id/recompile',     ctl.recompilePersona);
 adminRouter.post  ('/:id/reject',        ctl.rejectPersona);
 adminRouter.delete('/:id',               ctl.deletePersona);
 

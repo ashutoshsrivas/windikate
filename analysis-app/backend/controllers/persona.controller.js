@@ -344,6 +344,53 @@ async function approvePersona(req, res, next) {
     } catch (err) { next(err); }
 }
 
+/* POST /api/admin/personas/:id/recompile · re-run the AI compilation on
+ * an existing persona. Useful when the initial approve happened while
+ * Bedrock was rate-limited and we want to upgrade the deterministic stub
+ * into a real personality scoring + map placement. */
+async function recompilePersona(req, res, next) {
+    try {
+        const id = Number(req.params.id);
+        const persona = await queryOne(`SELECT * FROM personas WHERE id = :id`, { id });
+        if (!persona) return res.status(404).json({ error: 'Persona not found' });
+
+        const payload = typeof persona.payload === 'string' ? JSON.parse(persona.payload) : persona.payload;
+        const modelId = await settings.get('samaj_persona_model', DEFAULT_MODEL);
+        const compiled = await compilePersona(payload, { modelId, user_id: req.user.id });
+
+        if (!compiled.ai_used) {
+            return res.status(503).json({
+                error: 'AI compilation unavailable right now',
+                fallback_reason: compiled.fallback_reason
+            });
+        }
+        const { map_x, map_y } = placeOnMap(compiled.traits);
+        await update(
+            `UPDATE personas SET
+                archetype = :arch,
+                headline  = COALESCE(:head, headline),
+                traits    = :t,
+                system_prompt_md = :sys,
+                map_x = :x, map_y = :y
+             WHERE id = :id`,
+            {
+                id,
+                arch: compiled.archetype,
+                head: compiled.headline,
+                t:    JSON.stringify(compiled.traits),
+                sys:  compiled.system_prompt_md,
+                x:    map_x, y: map_y
+            }
+        );
+        const fresh = await queryOne(
+            `SELECT id, display_name, headline, archetype, status, traits, map_x, map_y, system_prompt_md
+               FROM personas WHERE id = :id`,
+            { id }
+        );
+        res.json({ persona: fresh, ai_used: true });
+    } catch (err) { next(err); }
+}
+
 async function rejectPersona(req, res, next) {
     try {
         const id = Number(req.params.id);
@@ -476,5 +523,5 @@ module.exports = {
     createInvite, listInvites, revokeInvite,
     getInvitePublic, submitIntake, transcribeStage,
     listPersonas, getPersona,
-    approvePersona, rejectPersona, deletePersona
+    approvePersona, recompilePersona, rejectPersona, deletePersona
 };

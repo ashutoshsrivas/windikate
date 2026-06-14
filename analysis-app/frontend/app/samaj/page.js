@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { api } from '../../lib/api';
 
 /* SAMAJ — the digital map of every approved twin.
@@ -28,10 +29,20 @@ export default function SamajMap() {
     const [personas, setPersonas] = useState(null);
     const [active, setActive] = useState(null);
     const [filter, setFilter] = useState(null);
+    const router = useRouter();
 
     useEffect(() => {
-        api.samajListPersonas('approved').then(({ personas }) => setPersonas(personas));
+        api.samajApprovedPersonas().then(({ personas }) => setPersonas(personas)).catch(() => setPersonas([]));
     }, []);
+
+    async function startChatWith(persona) {
+        try {
+            const { session } = await api.samajCreateSession({ mode: 'chat', persona_ids: [persona.id] });
+            router.push(`/samaj/chat/${session.id}`);
+        } catch (e) {
+            alert(e.body?.error || e.message);
+        }
+    }
 
     if (personas === null) return <div className="text-ink2-muted">Loading the digital map…</div>;
 
@@ -86,7 +97,7 @@ export default function SamajMap() {
             {personas.length > 0 && (
                 <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-6">
                     <Map personas={visible} active={active} onPick={setActive} />
-                    <Inspector persona={active} />
+                    <Inspector persona={active} onChat={startChatWith} />
                 </div>
             )}
         </div>
@@ -133,7 +144,7 @@ function Map({ personas, active, onPick }) {
     );
 }
 
-function Inspector({ persona }) {
+function Inspector({ persona, onChat }) {
     if (!persona) return (
         <div className="rounded-2xl border border-dashed border-edge bg-surface p-6 text-sm text-ink2-muted h-full flex items-center justify-center text-center">
             Click a dot to inspect that twin.
@@ -160,10 +171,10 @@ function Inspector({ persona }) {
                 ))}
             </div>
             <div className="pt-2 border-t border-edge flex items-center gap-2">
-                <Link href={`/samaj/chat/${persona.id}`} className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-brand-600 hover:bg-brand-500 text-white text-sm font-medium">
+                <button onClick={() => onChat(persona)} className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-brand-600 hover:bg-brand-500 text-white text-sm font-medium">
                     <i className="bi bi-chat-dots" />Start chat
-                </Link>
-                <Link href={`/admin/samaj`} className="px-3 py-2 rounded-lg border border-edge text-ink2-muted hover:text-ink2 text-sm">
+                </button>
+                <Link href={`/admin/samaj`} className="px-3 py-2 rounded-lg border border-edge text-ink2-muted hover:text-ink2 text-sm" title="Manage in admin">
                     <i className="bi bi-three-dots" />
                 </Link>
             </div>

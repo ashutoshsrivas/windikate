@@ -13,6 +13,7 @@ const questionRoutes = require('./routes/question.routes');
 const memoRoutes = require('./routes/memo.routes');
 const adminRoutes = require('./routes/admin.routes');
 const personaRoutes = require('./routes/persona.routes');
+const samajRoutes   = require('./routes/samaj.routes');
 
 const app = express();
 
@@ -37,6 +38,7 @@ app.use('/api/analyses', memoRoutes);         // mounts /:id/memo
 app.use('/api/admin',           adminRoutes);                  // admin panel
 app.use('/api/admin/personas',  personaRoutes.adminRouter);    // SAMAJ admin
 app.use('/api/invites',         personaRoutes.publicRouter);   // SAMAJ public intake
+app.use('/api/samaj',           samajRoutes);                  // SAMAJ simulation engine
 
 app.use((req, res) => res.status(404).json({ error: 'Not found', path: req.originalUrl }));
 app.use(errorMiddleware);

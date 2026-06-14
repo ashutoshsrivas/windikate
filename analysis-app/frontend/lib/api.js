@@ -91,7 +91,17 @@ export const api = {
     samajGetInvite:    (token) => request(`/api/invites/${token}`),
     samajSubmitIntake: (token, body) => request(`/api/invites/${token}/submit`, { method: 'POST', body }),
     samajTranscribeStage: (token, body) =>
-        request(`/api/invites/${token}/transcribe-stage`, { method: 'POST', body })
+        request(`/api/invites/${token}/transcribe-stage`, { method: 'POST', body }),
+
+    // SAMAJ — simulation engine (authed)
+    samajApprovedPersonas: () => request('/api/samaj/personas'),
+    samajCreateSession:    (body) => request('/api/samaj/sessions', { method: 'POST', body }),
+    samajListSessions:     () => request('/api/samaj/sessions'),
+    samajGetSession:       (id) => request(`/api/samaj/sessions/${id}`),
+    samajSendMessage:      (id, content) => request(`/api/samaj/sessions/${id}/messages`, { method: 'POST', body: { content } }),
+    samajRunDiscussion:    (id, prompt)  => request(`/api/samaj/sessions/${id}/run-discussion`, { method: 'POST', body: { prompt } }),
+    samajRunApercept:      (body) => request('/api/samaj/apercept', { method: 'POST', body }),
+    samajRecompile:        (id) => request(`/api/admin/personas/${id}/recompile`, { method: 'POST' })
 };
 
 export const STORAGE = { TOKEN_KEY };

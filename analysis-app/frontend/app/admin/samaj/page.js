@@ -57,6 +57,16 @@ export default function AdminSamaj() {
         setReviewing(null);
         await reloadAll();
     }
+    async function recompile(persona) {
+        setSubmitting(true); setError(null);
+        try {
+            const out = await api.samajRecompile(persona.id);
+            alert(`Re-scored — archetype now '${out.persona.archetype}'.`);
+            await reloadAll();
+        } catch (e) {
+            setError(e.body?.error || e.message);
+        } finally { setSubmitting(false); }
+    }
 
     return (
         <div className="space-y-6">
@@ -93,7 +103,7 @@ export default function AdminSamaj() {
             {openInvite && <InviteLinkModal data={openInvite} onClose={() => setOpenInvite(null)} />}
             {reviewing && <ReviewModal persona={reviewing}
                 onClose={() => setReviewing(null)}
-                onApprove={approve} onReject={reject} submitting={submitting} />}
+                onApprove={approve} onReject={reject} onRecompile={recompile} submitting={submitting} />}
         </div>
     );
 }
@@ -203,7 +213,7 @@ function PersonasTab({ list, empty, onOpen, kind }) {
 }
 
 /* ─── Review modal — see intake, approve/reject ─────────── */
-function ReviewModal({ persona, onClose, onApprove, onReject, submitting }) {
+function ReviewModal({ persona, onClose, onApprove, onReject, onRecompile, submitting }) {
     const [detail, setDetail] = useState(null);
     useEffect(() => { api.samajGetPersona(persona.id).then(({ persona }) => setDetail(persona)); }, [persona.id]);
 
@@ -254,7 +264,13 @@ function ReviewModal({ persona, onClose, onApprove, onReject, submitting }) {
                         </>
                     )}
                     {persona.status === 'approved' && (
-                        <Link href="/samaj" className="px-4 py-2 rounded-lg bg-brand-500/10 text-brand-500 text-sm">View on map →</Link>
+                        <>
+                            <button onClick={() => onRecompile(persona)} disabled={submitting}
+                                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-edge text-ink2-muted hover:text-ink2 hover:bg-surface-raised text-sm disabled:opacity-50">
+                                <i className="bi bi-magic" />Re-score with AI
+                            </button>
+                            <Link href="/samaj" className="px-4 py-2 rounded-lg bg-brand-500/10 text-brand-500 text-sm">View on map →</Link>
+                        </>
                     )}
                 </footer>
             </div>
