@@ -33,13 +33,17 @@ async function getModels(req, res) {
  *  /api/admin/settings
  * ------------------------------------------------------------------ */
 async function getSettings(req, res, next) {
-    try { res.json({ settings: await settings.getAll() }); }
+    try { res.json({ settings: maskSecrets(await settings.getAll()) }); }
     catch (err) { next(err); }
 }
 
 async function putSettings(req, res, next) {
     try {
-        const ALLOWED = ['default_model', 'bedrock_enabled', 'monthly_cap_cents'];
+        const ALLOWED = [
+            'default_model', 'bedrock_enabled', 'monthly_cap_cents',
+            'web_search_enabled', 'web_search_provider', 'web_search_ttl_days',
+            'serper_api_key'
+        ];
         for (const [k, v] of Object.entries(req.body || {})) {
             if (!ALLOWED.includes(k)) continue;
             if (k === 'default_model' && !getModel(v)) {
@@ -47,8 +51,17 @@ async function putSettings(req, res, next) {
             }
             await settings.set(k, v, req.user.id);
         }
-        res.json({ settings: await settings.getAll() });
+        res.json({ settings: maskSecrets(await settings.getAll()) });
     } catch (err) { next(err); }
+}
+
+function maskSecrets(s) {
+    /* Never echo back the raw key — admins only need to know it's set. */
+    if (s && typeof s === 'object' && s.serper_api_key) {
+        const v = String(s.serper_api_key);
+        s.serper_api_key = v.length > 8 ? v.slice(0, 4) + '••••' + v.slice(-4) : '••••';
+    }
+    return s;
 }
 
 /* --------------------------------------------------------------------

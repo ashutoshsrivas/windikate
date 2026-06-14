@@ -77,6 +77,44 @@ export default function AdminSettings() {
             </section>
 
             <section>
+                <h2 className="text-lg font-semibold mb-1">Live web search</h2>
+                <p className="text-ink2-muted text-sm mb-4">
+                    When on, every deck upload pulls fresh authoritative citations for each benchmark via Google SERP (Serper.dev).
+                    Results cache for {s.web_search_ttl_days || 30} days, so repeat decks don't burn the quota.
+                    When off, the report falls back to the curated static URLs in the deviation engine.
+                </p>
+                <label className="flex items-center gap-3 cursor-pointer p-4 rounded-xl bg-surface border border-edge">
+                    <input type="checkbox" checked={!!s.web_search_enabled}
+                        onChange={e => save({ web_search_enabled: e.target.checked })}
+                        className="w-5 h-5 accent-brand-500" />
+                    <div>
+                        <div className="font-medium">Web search enabled</div>
+                        <div className="text-xs text-ink2-muted">
+                            Currently: <span className={s.web_search_enabled ? 'text-emerald-500' : 'text-rose-500'}>
+                                {s.web_search_enabled ? 'ON' : 'OFF'}
+                            </span>
+                            {s.web_search_enabled && !s.serper_api_key && <span className="text-amber-500"> · key missing</span>}
+                        </div>
+                    </div>
+                </label>
+                <div className="mt-3 grid grid-cols-1 sm:grid-cols-[1fr_140px] gap-3">
+                    <div>
+                        <label className="block text-xs font-mono uppercase tracking-wider text-ink2-faint mb-1.5">Serper.dev API key</label>
+                        <input type="password" placeholder={s.serper_api_key ? `current: ${s.serper_api_key}` : 'paste here — never shown back in clear'}
+                            onBlur={e => { if (e.target.value) { save({ serper_api_key: e.target.value }); e.target.value = ''; } }}
+                            className="field font-mono text-xs" />
+                        <p className="text-[11px] text-ink2-faint mt-1.5">Get a free key (2,500/mo) at <a className="text-brand-500 hover:underline" href="https://serper.dev" target="_blank" rel="noreferrer">serper.dev</a>. Stored encrypted in the settings table; never echoed back in clear.</p>
+                    </div>
+                    <div>
+                        <label className="block text-xs font-mono uppercase tracking-wider text-ink2-faint mb-1.5">Cache TTL (days)</label>
+                        <input type="number" min="0" max="365" defaultValue={Number(s.web_search_ttl_days) || 30}
+                            onBlur={e => save({ web_search_ttl_days: Number(e.target.value) || 30 })}
+                            className="field font-mono text-xs" />
+                    </div>
+                </div>
+            </section>
+
+            <section>
                 <h2 className="text-lg font-semibold mb-1">Monthly cap</h2>
                 <p className="text-ink2-muted text-sm mb-4">Soft cap — currently informational only; per-user enforcement coming next.</p>
                 <div className="flex items-center gap-2">

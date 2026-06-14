@@ -66,7 +66,7 @@ async function runPipeline(analysisId, user, deckFilename, aperceptEnabled, cont
     }
 
     // Step 2: deviations
-    const deviations = detectDeviations(metrics, benchmarks);
+    const deviations = await detectDeviations(metrics, benchmarks);
     const devIds = [];
     for (const d of deviations) {
         const id = await insert(
