@@ -79,7 +79,9 @@ export const api = {
 
     // SAMAJ — public intake (token-gated, no JWT)
     samajGetInvite:    (token) => request(`/api/invites/${token}`),
-    samajSubmitIntake: (token, body) => request(`/api/invites/${token}/submit`, { method: 'POST', body })
+    samajSubmitIntake: (token, body) => request(`/api/invites/${token}/submit`, { method: 'POST', body }),
+    samajTranscribeStage: (token, body) =>
+        request(`/api/invites/${token}/transcribe-stage`, { method: 'POST', body })
 };
 
 export const STORAGE = { TOKEN_KEY };

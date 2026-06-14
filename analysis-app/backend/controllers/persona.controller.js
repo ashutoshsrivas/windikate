@@ -100,6 +100,142 @@ async function getInvitePublic(req, res, next) {
     } catch (err) { next(err); }
 }
 
+/* ─────────────────────  TRANSCRIBE STAGE (AUDIO INTERVIEW)  ─────────────────────
+ *
+ * POST /api/invites/:token/transcribe-stage
+ * body: { stage: 'background'|'battery'|'attitudes'|'life_story'|'situational',
+ *         transcript: string }
+ *
+ * Returns: { stage, structured: <shape matching the intake form for that stage> }
+ *
+ * Strategy: a single Bedrock call per stage with a stage-specific prompt.
+ * Deterministic fallback when Bedrock is off — just stuffs the raw transcript
+ * into a free-text field for that stage so the user can edit/submit. */
+async function transcribeStage(req, res, next) {
+    try {
+        const inv = await queryOne(
+            `SELECT id, status, expires_at FROM persona_invites WHERE token = :t`,
+            { t: req.params.token }
+        );
+        if (!inv) return res.status(404).json({ error: 'Invite not found' });
+        if (inv.status === 'revoked')  return res.status(410).json({ error: 'Invite was revoked' });
+        if (inv.expires_at && new Date(inv.expires_at) < new Date()) return res.status(410).json({ error: 'Invite expired' });
+
+        const { stage, transcript } = req.body || {};
+        if (!stage || !STAGE_PROMPTS[stage]) return res.status(400).json({ error: 'unknown stage' });
+        const text = String(transcript || '').trim();
+        if (!text) return res.status(400).json({ error: 'transcript is empty' });
+
+        let structured;
+        let ai_used = false;
+
+        if (bedrock.isAvailable()) {
+            try {
+                const modelId = await settings.get('samaj_persona_model', DEFAULT_MODEL);
+                const { system, schema_hint, fallback_shape } = STAGE_PROMPTS[stage];
+                structured = await bedrock.invokeJSON(
+                    `Transcript:\n${text.slice(0, 12000)}\n\nReturn ONLY the JSON described above. No prose, no markdown fences.`,
+                    {
+                        system: `${system}\n\nReturn JSON matching this shape exactly:\n${schema_hint}`,
+                        modelId,
+                        maxTokens: 1200,
+                        temperature: 0.2,
+                        service: `samaj.transcribe_${stage}`
+                    }
+                );
+                ai_used = true;
+                // Belt-and-braces: if AI returned something unusable, fall back.
+                if (!structured || typeof structured !== 'object') {
+                    structured = STAGE_PROMPTS[stage].fallback_shape(text);
+                    ai_used = false;
+                }
+            } catch (err) {
+                console.warn(`[samaj] transcribeStage(${stage}) AI failed:`, err.message);
+                structured = STAGE_PROMPTS[stage].fallback_shape(text);
+            }
+        } else {
+            structured = STAGE_PROMPTS[stage].fallback_shape(text);
+        }
+
+        res.json({ stage, structured, ai_used });
+    } catch (err) { next(err); }
+}
+
+/* Per-stage prompt + shape declarations. The schema_hint is concatenated to
+ * the system prompt so the model knows exactly which keys to emit. */
+const STAGE_PROMPTS = {
+    background: {
+        system: 'You are a careful research assistant cleaning up an interview transcript into a tight biography. Keep specifics (age, geography, education, occupation, family, languages). Drop fillers and false starts. Write in third person if the speaker drifts between first/third, otherwise honour their voice.',
+        schema_hint: '{ "background": "<2-4 paragraph biography in their own voice>" }',
+        fallback_shape: (text) => ({ background: text })
+    },
+
+    battery: {
+        system: 'You are scoring a respondent on the Mini-IPIP-20 Big-Five personality inventory from a free-form interview where they described themselves. Each item is rated 1 (very inaccurate as a self-description) to 5 (very accurate). Reverse-keyed items still take the rating that matches what the respondent SAID about themselves — do NOT reverse them yourself, the consumer reverses on aggregation. If a particular item cannot be inferred, score 3 (neutral). Items:\n' +
+            'e1 Am the life of the party.\n' +
+            'e2 Talk to a lot of different people at parties.\n' +
+            'e3 Don\'t talk a lot. (R)\n' +
+            'e4 Keep in the background. (R)\n' +
+            'a1 Sympathize with others\' feelings.\n' +
+            'a2 Feel others\' emotions.\n' +
+            'a3 Am not really interested in others. (R)\n' +
+            'a4 Am not interested in other people\'s problems. (R)\n' +
+            'c1 Get chores done right away.\n' +
+            'c2 Like order.\n' +
+            'c3 Often forget to put things back in their proper place. (R)\n' +
+            'c4 Make a mess of things. (R)\n' +
+            'n1 Have frequent mood swings.\n' +
+            'n2 Get upset easily.\n' +
+            'n3 Am relaxed most of the time. (R)\n' +
+            'n4 Seldom feel blue. (R)\n' +
+            'o1 Have a vivid imagination.\n' +
+            'o2 Am full of ideas.\n' +
+            'o3 Am not interested in abstract ideas. (R)\n' +
+            'o4 Do not have a good imagination. (R)',
+        schema_hint: '{ "e1":N, "e2":N, "e3":N, "e4":N, "a1":N, "a2":N, "a3":N, "a4":N, "c1":N, "c2":N, "c3":N, "c4":N, "n1":N, "n2":N, "n3":N, "n4":N, "o1":N, "o2":N, "o3":N, "o4":N }   // each N is integer 1..5',
+        fallback_shape: () => {
+            const out = {};
+            ['e','a','c','n','o'].forEach(d => { for (let i = 1; i <= 4; i++) out[`${d}${i}`] = 3; });
+            return out;
+        }
+    },
+
+    attitudes: {
+        system: 'Extract worldview snapshot from the transcript. Scale items are 1..7 from the LEFT extreme to the RIGHT extreme as labelled. If unsure, score 4 (centre). Use the speaker\'s own words for the free-text items; keep them short.\n' +
+            'Items:\n' +
+            '- ideology: 1 (very liberal) ↔ 7 (very conservative)\n' +
+            '- religiosity: 1 (not at all religious / spiritual) ↔ 7 (deeply)\n' +
+            '- trust: 1 (strongly disagree "most people can be trusted") ↔ 7 (strongly agree)\n' +
+            '- party: free-text party or political identification (≤ 60 chars)\n' +
+            '- issues: free-text 3 top issues they care about (≤ 120 chars, comma-separated)',
+        schema_hint: '{ "ideology":N, "religiosity":N, "trust":N, "party":"<text>", "issues":"<text>" }',
+        fallback_shape: (text) => ({ ideology: 4, religiosity: 4, trust: 4, party: '', issues: text.slice(0, 120) })
+    },
+
+    life_story: {
+        system: 'Reshape the transcript into a clean, well-edited autobiographical narrative in the speaker\'s own voice. Preserve specific names, places, and emotional beats. Aim for ~600-1200 words. Also extract a list of chapter labels if the speaker offered them (or invent reasonable ones from the content).',
+        schema_hint: '{ "life_story": "<long narrative>", "chapters": ["chapter 1", "chapter 2", "…"] }',
+        fallback_shape: (text) => ({ life_story: text, chapters: [] })
+    },
+
+    situational: {
+        system: 'The respondent answered seven situational-judgment questions in a single free-form recording. Extract one concise (1-3 sentence) answer per question, in the speaker\'s own voice. If a question wasn\'t addressed at all, leave the value as "". The seven question IDs:\n' +
+            '- extra_change: shopkeeper gave too much change, noticed only after leaving\n' +
+            '- honest_feedback: close friend asks for honest feedback on weak work\n' +
+            '- dictator_split: how much to keep when splitting money with a stranger\n' +
+            '- group_disagree: strongly disagree with a group direction\n' +
+            '- free_weekend: free weekend with no obligations\n' +
+            '- risky_offer: high-payoff risky opportunity\n' +
+            '- recent_decision: walk through a recent difficult decision',
+        schema_hint: '{ "extra_change":"…", "honest_feedback":"…", "dictator_split":"…", "group_disagree":"…", "free_weekend":"…", "risky_offer":"…", "recent_decision":"…" }',
+        fallback_shape: (text) => ({
+            extra_change: '', honest_feedback: '', dictator_split: '',
+            group_disagree: '', free_weekend: '', risky_offer: '',
+            recent_decision: text
+        })
+    }
+};
+
 async function submitIntake(req, res, next) {
     try {
         const inv = await queryOne(
@@ -338,7 +474,7 @@ function clamp01(n) { return Math.max(0, Math.min(1, n)); }
 
 module.exports = {
     createInvite, listInvites, revokeInvite,
-    getInvitePublic, submitIntake,
+    getInvitePublic, submitIntake, transcribeStage,
     listPersonas, getPersona,
     approvePersona, rejectPersona, deletePersona
 };

@@ -85,8 +85,10 @@ sudo a2ensite windikate >/dev/null 2>&1 || true
 # Disable the default 80-only vhost if it's still active.
 sudo a2dissite 000-default >/dev/null 2>&1 || true
 
-# Make sure Apache listens on 443.
-if ! grep -q "^Listen 443" /etc/apache2/ports.conf; then
+# Make sure Apache listens on 443. Default ports.conf already has it
+# inside an <IfModule ssl_module> block — only append a top-level Listen
+# when neither form is present.
+if ! grep -qE '^[[:space:]]*Listen 443' /etc/apache2/ports.conf; then
     echo "Listen 443" | sudo tee -a /etc/apache2/ports.conf >/dev/null
 fi
 

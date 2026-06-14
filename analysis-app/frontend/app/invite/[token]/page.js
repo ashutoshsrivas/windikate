@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { useParams } from 'next/navigation';
 import { api } from '../../../lib/api';
+import AudioInterview from '../../../components/AudioInterview';
 
 /* The Mini-IPIP-20 (Donnellan et al. 2006) — public domain.
  * Per the paper: 4 items per Big Five domain, items marked R are
@@ -61,6 +62,54 @@ const STAGES = [
 
 const STORE_KEY = (token) => `windikate.intake.${token}`;
 
+/* ──────────────────────────────────────────────────────────────────
+ *  Audio-interview prompts per stage.
+ *
+ *  The audio mode replaces the long form for that stage with a single
+ *  recording panel — these are the prompts an interviewer would read
+ *  to elicit the same information. Bedrock then structures whatever
+ *  the respondent says into the same JSON shape the form would produce.
+ * ────────────────────────────────────────────────────────────────── */
+const AUDIO_PROMPTS = {
+    background: [
+        "Tell me your name and how you'd like to be addressed.",
+        "How old are you, where did you grow up, and where do you live now?",
+        "What do you do for a living, and what was the path here? Education, jobs, anything that shaped your career.",
+        "Family and household situation — partner, kids, who you live with.",
+        "Languages you speak at home and at work."
+    ],
+    battery: [
+        "Walk me through how social you are. Are you the life of the party, or more in the background?",
+        "How conscientious are you with details and routines — chores done right away, or stuff piles up?",
+        "How do you handle stress? Are you mostly relaxed, or do you get rattled / blue easily?",
+        "How open are you to new ideas, abstract thinking, your imagination — full of ideas, or more grounded?",
+        "Are you sympathetic and curious about people, or more independent and less interested in others' problems?"
+    ],
+    attitudes: [
+        "Politically — where do you sit on the liberal-to-conservative axis?",
+        "How religious or spiritual would you say you are — not at all, somewhat, deeply?",
+        "Do you broadly trust people, or are you more guarded?",
+        "Which political party or movement, if any, do you identify with?",
+        "Name the three issues you care about most right now."
+    ],
+    life_story: [
+        "Tell me your life story, from childhood through today.",
+        "Talk about a high point — one of the best moments — and a low point.",
+        "Was there a turning point that changed how you see yourself?",
+        "What's the next chapter likely to hold for you? Hopes, dreams, the one thing you most want to accomplish.",
+        "What are the core values that guide you? Where do they come from?"
+    ],
+    situational: [
+        "Imagine you got too much change at a shop and noticed only after leaving. What would you actually do?",
+        "A close friend asks for honest feedback on work you think is poor — how do you respond?",
+        "You're given money to split however you like with a stranger you'll never meet. How much do you keep?",
+        "You strongly disagree with a group's direction. How do you handle it?",
+        "You have a free weekend with no obligations. How do you spend it?",
+        "You're offered a risky opportunity with a high payoff and a real chance of loss. How do you decide?",
+        "Walk me through a recent difficult decision, step by step."
+    ]
+};
+
 export default function IntakePage() {
     const { token } = useParams();
     const [invite, setInvite] = useState(null);
@@ -69,6 +118,9 @@ export default function IntakePage() {
     const [submitting, setSubmitting] = useState(false);
 
     const [stage, setStage] = useState(0);
+    const [audioMode, setAudioMode] = useState(false);
+    const [audioBusy, setAudioBusy] = useState(false);
+    const [audioNote, setAudioNote]  = useState(null);  // {tone:'ok'|'warn', text}
     const [data, setData] = useState({
         display_name: '',
         headline: '',
@@ -111,6 +163,38 @@ export default function IntakePage() {
     function patch(p) { setData(d => ({ ...d, ...p })); }
     function patchKey(k, v) { setData(d => ({ ...d, [k]: { ...d[k], ...v } })); }
 
+    /* Audio mode handler — send transcript for the current stage to Bedrock,
+     * merge the structured result into `data`, leave audio mode for this
+     * stage so the user can review the AI's fill-in, then advance to the
+     * next stage with audio still on by default. */
+    async function runAudioForStage(stageKey, transcript) {
+        setAudioBusy(true); setError(null); setAudioNote(null);
+        try {
+            const { structured, ai_used } = await api.samajTranscribeStage(token, { stage: stageKey, transcript });
+            if (stageKey === 'background')      patch({ background: structured.background || '' });
+            else if (stageKey === 'battery')    patchKey('battery', structured);
+            else if (stageKey === 'attitudes')  patchKey('attitudes', structured);
+            else if (stageKey === 'life_story') patch({
+                life_story: structured.life_story || '',
+                chapters:   structured.chapters   || []
+            });
+            else if (stageKey === 'situational') patchKey('situational', structured);
+
+            setAudioNote({
+                tone: ai_used ? 'ok' : 'warn',
+                text: ai_used
+                    ? 'AI structured your interview into the form below. Review and edit anything that\'s off, then continue.'
+                    : 'AI is currently offline — your transcript was stored as-is. You can edit before continuing.'
+            });
+            // Reveal the form for review
+            setAudioMode(false);
+        } catch (e) {
+            setError(e.body?.error || e.message);
+        } finally {
+            setAudioBusy(false);
+        }
+    }
+
     async function submit() {
         setSubmitting(true); setError(null);
         try {
@@ -148,8 +232,35 @@ export default function IntakePage() {
     const canPrev = stage > 0;
     const canNext = stage < STAGES.length - 1;
 
+    const audioAvailableForStage = AUDIO_PROMPTS[cur.key] != null;
+
     return (
         <div className="space-y-8">
+            {/* Mode toggle — keyboard or audio interview */}
+            <section className="flex items-center justify-between gap-4 flex-wrap">
+                <div>
+                    <h1 className="text-3xl font-bold tracking-tight">SAMAJ intake</h1>
+                    <p className="text-ink2-muted mt-1 text-sm">
+                        Hi {invite.invitee_name || 'there'} — answer at your own pace. Your responses build a digital twin of you on the SAMAJ map.
+                    </p>
+                </div>
+                <div className="inline-flex rounded-xl border border-edge bg-surface p-1 text-xs font-medium">
+                    <button onClick={() => setAudioMode(false)}
+                        className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-colors
+                            ${!audioMode ? 'bg-brand-500/15 text-brand-500' : 'text-ink2-muted hover:text-ink2'}`}>
+                        <i className="bi bi-keyboard" />Type
+                    </button>
+                    <button onClick={() => audioAvailableForStage && setAudioMode(true)}
+                        disabled={!audioAvailableForStage}
+                        title={audioAvailableForStage ? 'Switch to voice interview' : 'Audio not available on this step'}
+                        className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-colors
+                            ${audioMode ? 'bg-brand-500/15 text-brand-500' : 'text-ink2-muted hover:text-ink2'}
+                            ${!audioAvailableForStage ? 'opacity-40 cursor-not-allowed' : ''}`}>
+                        <i className="bi bi-mic" />Audio interview
+                    </button>
+                </div>
+            </section>
+
             {/* Welcome / progress */}
             <section>
                 <div className="flex items-center justify-between text-xs font-mono uppercase text-ink2-faint">
@@ -175,11 +286,33 @@ export default function IntakePage() {
             </section>
 
             <header>
-                <h1 className="text-3xl font-bold tracking-tight">{stageTitle(cur.key)}</h1>
+                <h2 className="text-2xl font-bold tracking-tight">{stageTitle(cur.key)}</h2>
                 <p className="text-ink2-muted mt-2 max-w-2xl">{stageDescription(cur.key)}</p>
             </header>
 
+            {audioNote && (
+                <div className={`rounded-xl border px-4 py-3 text-sm
+                    ${audioNote.tone === 'ok'
+                        ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-700 dark:text-emerald-300'
+                        : 'bg-amber-500/10 border-amber-500/30 text-amber-700 dark:text-amber-300'}`}>
+                    <i className={`bi ${audioNote.tone === 'ok' ? 'bi-magic' : 'bi-exclamation-circle'} mr-2`} />
+                    {audioNote.text}
+                </div>
+            )}
+
             <section className="rounded-2xl border border-edge bg-surface p-6 lg:p-8 space-y-6">
+                {/* AUDIO MODE — replaces the typed form when active for stages
+                   that support it. The submit and consent stages are typing-only. */}
+                {audioMode && audioAvailableForStage ? (
+                    <AudioInterview
+                        title={`${stageTitle(cur.key)} — talk to me`}
+                        prompts={AUDIO_PROMPTS[cur.key]}
+                        busy={audioBusy}
+                        onTranscript={(t) => runAudioForStage(cur.key, t)}
+                        onSkip={() => setAudioMode(false)}
+                    />
+                ) : (
+                <>
                 {cur.key === 'background' && (
                     <>
                         <Field label="Your name" required>
@@ -224,14 +357,17 @@ export default function IntakePage() {
                 {cur.key === 'submit' && (
                     <SubmitSection data={data} consent={data.consent} onConsent={c => patch({ consent: c })} />
                 )}
+                </>
+                )}
 
                 {error && <div className="text-sm text-rose-500 bg-rose-500/10 border border-rose-500/30 rounded-lg px-4 py-3">{error}</div>}
 
+                {!(audioMode && audioAvailableForStage) && (
                 <div className="flex items-center justify-between pt-3">
-                    <button disabled={!canPrev} onClick={() => setStage(s => s - 1)}
+                    <button disabled={!canPrev} onClick={() => { setStage(s => s - 1); setAudioNote(null); }}
                         className="px-4 py-2 rounded-lg text-sm text-ink2-muted hover:text-ink2 disabled:opacity-30">← Back</button>
                     {canNext ? (
-                        <button onClick={() => setStage(s => s + 1)}
+                        <button onClick={() => { setStage(s => s + 1); setAudioNote(null); }}
                             className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-500 text-white text-sm font-medium">
                             Continue<i className="bi bi-arrow-right" />
                         </button>
@@ -242,6 +378,7 @@ export default function IntakePage() {
                         </button>
                     )}
                 </div>
+                )}
             </section>
 
             <p className="text-xs text-ink2-faint text-center">

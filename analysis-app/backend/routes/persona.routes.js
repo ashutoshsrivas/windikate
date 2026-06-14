@@ -19,7 +19,8 @@ adminRouter.delete('/:id',               ctl.deletePersona);
 
 /* ─── Public router · mount under /api/invites ─────────────────────── */
 const publicRouter = express.Router();
-publicRouter.get ('/:token',         ctl.getInvitePublic);
-publicRouter.post('/:token/submit',  ctl.submitIntake);
+publicRouter.get ('/:token',                  ctl.getInvitePublic);
+publicRouter.post('/:token/submit',           ctl.submitIntake);
+publicRouter.post('/:token/transcribe-stage', ctl.transcribeStage);
 
 module.exports = { adminRouter, publicRouter };
