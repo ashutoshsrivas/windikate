@@ -28,6 +28,7 @@ KEY="$SSL_DIR/privkey.pem"
 
 # Hostnames to put on the self-signed SAN — add yours as needed.
 HOSTNAMES=(
+    "samaj.windikate.com"
     "ec2-35-154-88-44.ap-south-1.compute.amazonaws.com"
     "windikate.com"
     "www.windikate.com"
@@ -102,11 +103,18 @@ cat <<'POST'
 ✓ TLS is live.
 
   Browsers will show a "not trusted" warning until you swap in a real
-  cert. To upgrade to Let's Encrypt once a domain points at this box:
+  cert. To upgrade to Let's Encrypt once samaj.windikate.com resolves
+  to this box, run:
 
-      sudo certbot --apache -d windikate.com -d www.windikate.com
+      sudo bash /var/www/windikate/deploy/letsencrypt-samaj.sh
 
-  Certbot will replace /etc/ssl/windikate/{fullchain,privkey}.pem
-  in place and set up auto-renewal via systemd timer.
+  Or directly:
+
+      sudo certbot --apache --non-interactive --agree-tos \
+          --email connect2recycle@gmail.com \
+          -d samaj.windikate.com
+
+  Certbot will install the cert directly into the Apache vhost and
+  set up auto-renewal via the systemd timer that comes with the package.
 ────────────────────────────────────────────────────────────────────
 POST
