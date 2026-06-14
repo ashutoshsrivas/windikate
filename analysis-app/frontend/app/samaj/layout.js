@@ -1,5 +1,5 @@
 import SidebarShell from '../../components/SidebarShell';
 
-export default function DashboardLayout({ children }) {
+export default function SamajLayout({ children }) {
     return <SidebarShell>{children}</SidebarShell>;
 }

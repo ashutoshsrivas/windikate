@@ -65,7 +65,21 @@ export const api = {
     adminDeleteUser: (id) => request(`/api/admin/users/${id}`, { method: 'DELETE' }),
     adminSettings:  () => request('/api/admin/settings'),
     adminPutSettings: (body) => request('/api/admin/settings', { method: 'PUT', body }),
-    adminUsage: (days = 30) => request(`/api/admin/usage?days=${days}`)
+    adminUsage: (days = 30) => request(`/api/admin/usage?days=${days}`),
+
+    // SAMAJ — admin
+    samajListInvites:  () => request('/api/admin/personas/invites'),
+    samajCreateInvite: (body) => request('/api/admin/personas/invites', { method: 'POST', body }),
+    samajRevokeInvite: (id) => request(`/api/admin/personas/invites/${id}`, { method: 'DELETE' }),
+    samajListPersonas: (status) => request(`/api/admin/personas${status ? `?status=${status}` : ''}`),
+    samajGetPersona:   (id) => request(`/api/admin/personas/${id}`),
+    samajApprove:      (id) => request(`/api/admin/personas/${id}/approve`, { method: 'POST' }),
+    samajReject:       (id) => request(`/api/admin/personas/${id}/reject`,  { method: 'POST' }),
+    samajDelete:       (id) => request(`/api/admin/personas/${id}`, { method: 'DELETE' }),
+
+    // SAMAJ — public intake (token-gated, no JWT)
+    samajGetInvite:    (token) => request(`/api/invites/${token}`),
+    samajSubmitIntake: (token, body) => request(`/api/invites/${token}/submit`, { method: 'POST', body })
 };
 
 export const STORAGE = { TOKEN_KEY };

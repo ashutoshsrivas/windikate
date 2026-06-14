@@ -13,7 +13,7 @@ export default function AdminOverview() {
         api.adminModels().then(({ models }) => setModels(models));
     }, []);
 
-    if (!d) return <div className="text-white/50">Loading…</div>;
+    if (!d) return <div className="text-ink2-faint">Loading…</div>;
 
     const currentModel = models.find(m => m.id === d.default_model);
 
@@ -30,17 +30,17 @@ export default function AdminOverview() {
             </section>
 
             {/* Current default model card */}
-            <section className="rounded-2xl border border-white/10 bg-white/[0.02] p-6">
+            <section className="rounded-2xl border border-edge bg-surface p-6">
                 <div className="flex items-center justify-between mb-3">
-                    <div className="text-xs font-mono uppercase tracking-wider text-white/45">Default model</div>
+                    <div className="text-xs font-mono uppercase tracking-wider text-ink2-faint">Default model</div>
                     <Link href="/admin/settings" className="text-xs text-brand-300 hover:text-brand-200">Change →</Link>
                 </div>
                 {currentModel ? (
                     <div className="flex items-start justify-between gap-6 flex-wrap">
                         <div>
                             <div className="text-xl font-semibold">{currentModel.label}</div>
-                            <div className="text-sm text-white/55 mt-1 font-mono">{currentModel.id}</div>
-                            <div className="text-sm text-white/65 mt-3 max-w-md">{currentModel.good_for}</div>
+                            <div className="text-sm text-ink2-muted mt-1 font-mono">{currentModel.id}</div>
+                            <div className="text-sm text-ink2-muted mt-3 max-w-md">{currentModel.good_for}</div>
                         </div>
                         <div className="grid grid-cols-2 gap-2 text-sm">
                             <Pill label="Input"   value={`$${currentModel.inputPer1M.toFixed(2)}/M`} />
@@ -50,29 +50,29 @@ export default function AdminOverview() {
                         </div>
                     </div>
                 ) : (
-                    <div className="text-white/50 text-sm">No model configured.</div>
+                    <div className="text-ink2-faint text-sm">No model configured.</div>
                 )}
-                <div className="mt-5 flex items-center gap-2 text-xs text-white/50">
+                <div className="mt-5 flex items-center gap-2 text-xs text-ink2-faint">
                     <span className={`w-2 h-2 rounded-full ${d.bedrock_enabled ? 'bg-emerald-400' : 'bg-rose-400'}`}></span>
                     Bedrock {d.bedrock_enabled ? 'enabled' : 'disabled'}
                 </div>
             </section>
 
             <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <Link href="/admin/users"    className="bg-paper-100 rounded-2xl border border-white/10 bg-white/[0.02] p-6 hover:border-brand-500/30 transition-colors group">
+                <Link href="/admin/users"    className="bg-surface rounded-2xl border border-edge bg-surface p-6 hover:border-brand-500/30 transition-colors group">
                     <i className="bi bi-people text-2xl text-brand-300 block mb-3"></i>
                     <div className="font-semibold group-hover:text-brand-200">Manage users →</div>
-                    <p className="text-sm text-white/55 mt-1">Add/remove analysts, set per-user model allowlists and spend caps.</p>
+                    <p className="text-sm text-ink2-muted mt-1">Add/remove analysts, set per-user model allowlists and spend caps.</p>
                 </Link>
-                <Link href="/admin/settings" className="bg-paper-100 rounded-2xl border border-white/10 bg-white/[0.02] p-6 hover:border-brand-500/30 transition-colors group">
+                <Link href="/admin/settings" className="bg-surface rounded-2xl border border-edge bg-surface p-6 hover:border-brand-500/30 transition-colors group">
                     <i className="bi bi-gear text-2xl text-brand-300 block mb-3"></i>
                     <div className="font-semibold group-hover:text-brand-200">Settings →</div>
-                    <p className="text-sm text-white/55 mt-1">Default model, Bedrock on/off, monthly cap.</p>
+                    <p className="text-sm text-ink2-muted mt-1">Default model, Bedrock on/off, monthly cap.</p>
                 </Link>
-                <Link href="/admin/usage"    className="bg-paper-100 rounded-2xl border border-white/10 bg-white/[0.02] p-6 hover:border-brand-500/30 transition-colors group">
+                <Link href="/admin/usage"    className="bg-surface rounded-2xl border border-edge bg-surface p-6 hover:border-brand-500/30 transition-colors group">
                     <i className="bi bi-graph-up text-2xl text-brand-300 block mb-3"></i>
                     <div className="font-semibold group-hover:text-brand-200">Usage →</div>
-                    <p className="text-sm text-white/55 mt-1">Daily cost breakdown + per-user attribution.</p>
+                    <p className="text-sm text-ink2-muted mt-1">Daily cost breakdown + per-user attribution.</p>
                 </Link>
             </section>
         </div>
@@ -81,16 +81,16 @@ export default function AdminOverview() {
 
 function Stat({ label, value, hint, progress, progressLabel }) {
     return (
-        <div className="rounded-2xl border border-white/10 bg-white/[0.02] p-5">
-            <div className="text-xs font-mono uppercase tracking-wider text-white/45">{label}</div>
+        <div className="rounded-2xl border border-edge bg-surface p-5">
+            <div className="text-xs font-mono uppercase tracking-wider text-ink2-faint">{label}</div>
             <div className="mt-1 text-3xl font-bold">{value}</div>
-            {hint && <div className="text-xs text-white/55 mt-1">{hint}</div>}
+            {hint && <div className="text-xs text-ink2-muted mt-1">{hint}</div>}
             {progress != null && (
                 <>
-                    <div className="mt-3 h-1.5 rounded-full bg-white/10 overflow-hidden">
+                    <div className="mt-3 h-1.5 rounded-full bg-surface-raised overflow-hidden">
                         <div className="h-full bg-gradient-to-r from-brand-500 to-pink-500" style={{ width: `${progress}%` }}></div>
                     </div>
-                    {progressLabel && <div className="text-[11px] font-mono text-white/40 mt-1.5">{progressLabel}</div>}
+                    {progressLabel && <div className="text-[11px] font-mono text-ink2-faint mt-1.5">{progressLabel}</div>}
                 </>
             )}
         </div>
@@ -99,8 +99,8 @@ function Stat({ label, value, hint, progress, progressLabel }) {
 
 function Pill({ label, value }) {
     return (
-        <div className="rounded-lg bg-white/[0.04] border border-white/10 px-3 py-2">
-            <div className="text-[10px] font-mono text-white/45 uppercase">{label}</div>
+        <div className="rounded-lg bg-surface-raised border border-edge px-3 py-2">
+            <div className="text-[10px] font-mono text-ink2-faint uppercase">{label}</div>
             <div className="text-sm font-medium mt-0.5">{value}</div>
         </div>
     );

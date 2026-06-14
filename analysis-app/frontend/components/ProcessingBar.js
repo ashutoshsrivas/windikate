@@ -22,7 +22,7 @@ export default function ProcessingBar({ active, finished }) {
     }, [active, finished]);
 
     return (
-        <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-ink-800/80 to-ink-900/80 p-6">
+        <div className="rounded-2xl border border-edge bg-gradient-to-br from-ink-800/80 to-ink-900/80 p-6">
             <div className="flex items-center justify-between mb-5">
                 <div className="text-sm font-semibold flex items-center gap-2">
                     <span className="relative flex h-2 w-2">
@@ -31,7 +31,7 @@ export default function ProcessingBar({ active, finished }) {
                     </span>
                     Processing your deck
                 </div>
-                <div className="text-[11px] font-mono text-white/45">{finished ? 'complete' : `step ${Math.min(current + 1, STEPS.length)} / ${STEPS.length}`}</div>
+                <div className="text-[11px] font-mono text-ink2-faint">{finished ? 'complete' : `step ${Math.min(current + 1, STEPS.length)} / ${STEPS.length}`}</div>
             </div>
 
             <ul className="space-y-2.5">
@@ -39,13 +39,13 @@ export default function ProcessingBar({ active, finished }) {
                     const done = finished || i < current;
                     const active = !finished && i === current;
                     return (
-                        <li key={s.key} className={`flex items-center gap-3 px-4 py-3 rounded-xl border ${done ? 'border-emerald-500/30 bg-emerald-500/5' : active ? 'border-brand-500/30 bg-brand-500/5 shimmer' : 'border-white/10 bg-white/[0.02]'}`}>
-                            <i className={`bi ${s.icon} text-lg ${done ? 'text-emerald-400' : active ? 'text-brand-300' : 'text-white/40'}`} />
-                            <span className={`flex-1 text-sm ${done ? 'text-white' : active ? 'text-white/85' : 'text-white/50'}`}>{s.label}</span>
+                        <li key={s.key} className={`flex items-center gap-3 px-4 py-3 rounded-xl border ${done ? 'border-emerald-500/30 bg-emerald-500/5' : active ? 'border-brand-500/30 bg-brand-500/5 shimmer' : 'border-edge bg-surface'}`}>
+                            <i className={`bi ${s.icon} text-lg ${done ? 'text-emerald-400' : active ? 'text-brand-300' : 'text-ink2-faint'}`} />
+                            <span className={`flex-1 text-sm ${done ? 'text-ink2' : active ? 'text-ink2' : 'text-ink2-faint'}`}>{s.label}</span>
                             <span className="text-base">
                                 {done ? <i className="bi bi-check2 text-emerald-400" /> :
                                  active ? <i className="bi bi-arrow-repeat text-brand-300 animate-spin inline-block" /> :
-                                 <span className="text-white/30 text-xs font-mono">queued</span>}
+                                 <span className="text-ink2-faint text-xs font-mono">queued</span>}
                             </span>
                         </li>
                     );

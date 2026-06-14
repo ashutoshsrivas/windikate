@@ -27,16 +27,16 @@ export default function AnalysisLayout({ children }) {
     }, [id, router]);
 
     if (error) return <div className="p-6 text-rose-300">{error}</div>;
-    if (!data) return <div className="p-6 text-white/45">Loading analysis…</div>;
+    if (!data) return <div className="p-6 text-ink2-faint">Loading analysis…</div>;
 
     const a = data.analysis;
     return (
         <div className="space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
                 <div>
-                    <Link href="/dashboard" className="text-xs text-white/45 hover:text-white inline-flex items-center gap-1.5"><i className="bi bi-arrow-left" />All analyses</Link>
+                    <Link href="/dashboard" className="text-xs text-ink2-faint hover:text-ink2 inline-flex items-center gap-1.5"><i className="bi bi-arrow-left" />All analyses</Link>
                     <h1 className="text-3xl sm:text-4xl font-bold tracking-tight mt-1">{a.company_name || 'Untitled analysis'}</h1>
-                    <div className="flex items-center gap-3 mt-2 text-sm text-white/55">
+                    <div className="flex items-center gap-3 mt-2 text-sm text-ink2-muted">
                         {a.stage && <span>{a.stage}</span>}
                         <span>·</span>
                         <span>Analyzed {new Date(a.created_at).toLocaleString()}</span>

@@ -23,16 +23,16 @@ export default function CallIntelligenceTab() {
                         Roadmap · Q3 2026
                     </div>
                     <h2 className="text-[36px] sm:text-[48px] font-bold tracking-tight leading-[1.1]">Coming soon.</h2>
-                    <p className="mt-3 text-white/65 max-w-xl mx-auto">Live call intelligence — transcripts, blockchain-anchored notes, and on-the-fly deviation updates.</p>
+                    <p className="mt-3 text-ink2-muted max-w-xl mx-auto">Live call intelligence — transcripts, blockchain-anchored notes, and on-the-fly deviation updates.</p>
                 </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {FEATURES.map(f => (
-                    <div key={f.title} className="rounded-2xl border border-white/10 bg-white/[0.02] p-6 hover:border-brand-500/30 transition-colors">
+                    <div key={f.title} className="rounded-2xl border border-edge bg-surface p-6 hover:border-brand-500/30 transition-colors">
                         <div className="w-11 h-11 rounded-xl bg-brand-500/10 text-brand-300 flex items-center justify-center mb-4"><i className={`bi ${f.icon} text-lg`} /></div>
                         <h3 className="font-semibold mb-1.5">{f.title}</h3>
-                        <p className="text-sm text-white/60 leading-relaxed">{f.body}</p>
+                        <p className="text-sm text-ink2-muted leading-relaxed">{f.body}</p>
                     </div>
                 ))}
             </div>

@@ -48,7 +48,7 @@ export default function DashboardPage() {
         <div className="space-y-8">
             <header>
                 <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">Start a new analysis</h1>
-                <p className="mt-2 text-white/55">Drop the deck, optionally a financial model — Windikate handles the rest.</p>
+                <p className="mt-2 text-ink2-muted">Drop the deck, optionally a financial model — Windikate handles the rest.</p>
             </header>
 
             <section className="grid grid-cols-1 lg:grid-cols-3 gap-5">
@@ -68,17 +68,17 @@ export default function DashboardPage() {
                         onFile={setFinancials}
                     />
 
-                    <div className="rounded-2xl border border-white/10 bg-white/[0.02] p-6 space-y-4">
+                    <div className="rounded-2xl border border-edge bg-surface p-6 space-y-4">
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
-                                <label className="block text-xs font-medium text-white/60 mb-1.5">Company name</label>
+                                <label className="block text-xs font-medium text-ink2-muted mb-1.5">Company name</label>
                                 <input value={company} onChange={e => setCompany(e.target.value)} placeholder="Acme Robotics"
-                                    className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/15 focus:border-brand-500 focus:outline-none" />
+                                    className="w-full px-4 py-2.5 rounded-xl bg-surface-raised border border-edge focus:border-brand-500 focus:outline-none" />
                             </div>
                             <div>
-                                <label className="block text-xs font-medium text-white/60 mb-1.5">Stage</label>
+                                <label className="block text-xs font-medium text-ink2-muted mb-1.5">Stage</label>
                                 <select value={stage} onChange={e => setStage(e.target.value)}
-                                    className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/15 focus:border-brand-500 focus:outline-none">
+                                    className="w-full px-4 py-2.5 rounded-xl bg-surface-raised border border-edge focus:border-brand-500 focus:outline-none">
                                     <option>Pre-seed</option><option>Seed</option><option>Series A</option><option>Series B</option><option>Series C+</option>
                                 </select>
                             </div>
@@ -87,7 +87,7 @@ export default function DashboardPage() {
                             <input type="checkbox" checked={aperceptOn} onChange={e => setAperceptOn(e.target.checked)} className="w-4 h-4 accent-brand-500" />
                             <span className="text-sm">
                                 Enable <span className="text-brand-300 font-medium">Apercept AI</span> simulation
-                                <span className="text-white/45"> · runs persona-level adoption simulation alongside the report</span>
+                                <span className="text-ink2-faint"> · runs persona-level adoption simulation alongside the report</span>
                             </span>
                         </label>
                     </div>
@@ -96,7 +96,7 @@ export default function DashboardPage() {
 
                     {!processing ? (
                         <button onClick={startAnalysis}
-                            className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 bg-brand-600 hover:bg-brand-500 text-white font-medium px-6 py-3.5 rounded-xl shadow-glow transition-all">
+                            className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 bg-brand-600 hover:bg-brand-500 text-ink2 font-medium px-6 py-3.5 rounded-xl shadow-glow transition-all">
                             <i className="bi bi-play-fill" />Let's get it done
                         </button>
                     ) : (
@@ -107,28 +107,28 @@ export default function DashboardPage() {
                 {/* Recent analyses */}
                 <aside className="space-y-3">
                     <div className="flex items-center justify-between">
-                        <h2 className="text-sm font-semibold uppercase tracking-wider text-white/55">Recent analyses</h2>
-                        {recent && recent.length > 0 && <span className="text-[11px] font-mono text-white/40">{recent.length}</span>}
+                        <h2 className="text-sm font-semibold uppercase tracking-wider text-ink2-muted">Recent analyses</h2>
+                        {recent && recent.length > 0 && <span className="text-[11px] font-mono text-ink2-faint">{recent.length}</span>}
                     </div>
 
                     {recent === null && (
-                        <div className="rounded-xl border border-white/10 bg-white/[0.02] p-4 text-sm text-white/40">Loading…</div>
+                        <div className="rounded-xl border border-edge bg-surface p-4 text-sm text-ink2-faint">Loading…</div>
                     )}
                     {recent && recent.length === 0 && (
-                        <div className="rounded-xl border border-dashed border-white/15 bg-white/[0.02] p-6 text-center">
-                            <i className="bi bi-file-earmark-text text-3xl text-white/30 block mb-2" />
-                            <div className="text-sm text-white/55">No recent analysis</div>
-                            <p className="text-xs text-white/35 mt-1">Your reports will appear here.</p>
+                        <div className="rounded-xl border border-dashed border-edge bg-surface p-6 text-center">
+                            <i className="bi bi-file-earmark-text text-3xl text-ink2-faint block mb-2" />
+                            <div className="text-sm text-ink2-muted">No recent analysis</div>
+                            <p className="text-xs text-ink2-faint mt-1">Your reports will appear here.</p>
                         </div>
                     )}
                     {recent && recent.map(a => (
                         <Link key={a.id} href={`/dashboard/analyses/${a.id}`}
-                            className="block rounded-xl border border-white/10 bg-white/[0.02] hover:border-brand-500/30 p-4 transition-colors">
+                            className="block rounded-xl border border-edge bg-surface hover:border-brand-500/30 p-4 transition-colors">
                             <div className="flex items-center justify-between">
                                 <div className="font-medium text-sm truncate">{a.company_name || 'Untitled analysis'}</div>
                                 <StatusBadge status={a.status} />
                             </div>
-                            <div className="flex items-center gap-3 mt-2 text-[11px] text-white/45 font-mono">
+                            <div className="flex items-center gap-3 mt-2 text-[11px] text-ink2-faint font-mono">
                                 <span>{a.stage || '—'}</span>
                                 <span>·</span>
                                 <span>{new Date(a.created_at).toLocaleDateString()}</span>
@@ -149,7 +149,7 @@ function StatusBadge({ status }) {
     const map = {
         complete:   { cls: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30', label: 'Complete' },
         processing: { cls: 'bg-brand-500/10 text-brand-300 border-brand-500/30',       label: 'Processing' },
-        queued:     { cls: 'bg-white/5 text-white/60 border-white/15',                  label: 'Queued' },
+        queued:     { cls: 'bg-surface-raised text-ink2-muted border-edge',                  label: 'Queued' },
         failed:     { cls: 'bg-rose-500/10 text-rose-400 border-rose-500/30',          label: 'Failed' }
     };
     const m = map[status] || map.queued;
