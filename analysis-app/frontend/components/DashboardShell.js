@@ -39,6 +39,11 @@ export default function DashboardShell({ children }) {
                     <nav className="hidden md:flex items-center gap-6 text-sm">
                         <Link href="/dashboard" className={`hover:text-white ${pathname === '/dashboard' ? 'text-white' : 'text-white/65'}`}>Dashboard</Link>
                         <Link href="/onboarding" className={`hover:text-white ${pathname === '/onboarding' ? 'text-white' : 'text-white/65'}`}>Preferences</Link>
+                        {user.role === 'admin' && (
+                            <Link href="/admin" className={`hover:text-white inline-flex items-center gap-1.5 ${pathname.startsWith('/admin') ? 'text-white' : 'text-white/65'}`}>
+                                <i className="bi bi-shield-lock text-xs"></i>Admin
+                            </Link>
+                        )}
                     </nav>
                     <div className="flex items-center gap-3">
                         <div className="hidden sm:flex items-center gap-2.5">

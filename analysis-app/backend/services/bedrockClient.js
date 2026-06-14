@@ -64,7 +64,11 @@ async function invokeText(userPrompt, {
     system = '',
     maxTokens = MAX_TOKENS,
     temperature = 0.3,
-    modelId = MODEL_ID
+    modelId = MODEL_ID,
+    /* For usage tracking — passed through to the usage logger */
+    user_id = null,
+    analysis_id = null,
+    service = 'unknown'
 } = {}) {
     if (!ENABLED) throw new BedrockDisabledError('BEDROCK_ENABLED is not true');
 
@@ -81,22 +85,54 @@ async function invokeText(userPrompt, {
         ? () => invokeViaBearer(modelId, payload, bearer)
         : () => invokeViaSdk(modelId, payload);
 
+    const start = Date.now();
     let lastErr;
     for (let attempt = 1; attempt <= 2; attempt++) {
         try {
-            const text = await invoke();
-            if (!text) throw new Error('Empty content from Bedrock');
-            return text;
+            const result = await invoke();   // { text, usage }
+            if (!result.text) throw new Error('Empty content from Bedrock');
+            await logUsage({
+                user_id, analysis_id, service, model_id: modelId,
+                input_tokens: result.usage?.input_tokens || 0,
+                output_tokens: result.usage?.output_tokens || 0,
+                success: true, error_code: null,
+                duration_ms: Date.now() - start
+            });
+            return result.text;
         } catch (err) {
             lastErr = err;
             if (attempt === 1 && /Throttl|ServiceUnavailable|Timeout|fetch failed|ECONN|ETIMEDOUT/i.test(err.name || err.message)) {
                 await new Promise(r => setTimeout(r, 800));
                 continue;
             }
+            await logUsage({
+                user_id, analysis_id, service, model_id: modelId,
+                input_tokens: 0, output_tokens: 0,
+                success: false,
+                error_code: extractErrorCode(err),
+                duration_ms: Date.now() - start
+            });
             throw err;
         }
     }
     throw lastErr;
+}
+
+/* Best-effort usage log — never let logging failures break the AI call. */
+async function logUsage(args) {
+    try {
+        const usage = require('./usage');
+        await usage.record(args);
+    } catch (logErr) {
+        console.warn('[bedrockClient] usage log failed:', logErr.message);
+    }
+}
+
+function extractErrorCode(err) {
+    if (err.status) return String(err.status);
+    if (err.name && err.name !== 'Error') return err.name;
+    const m = /\b([A-Za-z]+Exception)\b/.exec(err.message || '');
+    return m ? m[1] : null;
 }
 
 /* ----- Path 1 · bearer token via native fetch --------------------- */
@@ -118,7 +154,10 @@ async function invokeViaBearer(modelId, payload, bearer) {
         throw err;
     }
     const body = await res.json();
-    return (body.content || []).map(p => p.text).filter(Boolean).join('\n');
+    return {
+        text:  (body.content || []).map(p => p.text).filter(Boolean).join('\n'),
+        usage: body.usage || {}
+    };
 }
 
 /* ----- Path 2 · classic SDK (SigV4 / IAM) ------------------------- */
@@ -132,7 +171,10 @@ async function invokeViaSdk(modelId, payload) {
     });
     const res = await client().send(cmd);
     const body = JSON.parse(new TextDecoder().decode(res.body));
-    return (body.content || []).map(p => p.text).filter(Boolean).join('\n');
+    return {
+        text:  (body.content || []).map(p => p.text).filter(Boolean).join('\n'),
+        usage: body.usage || {}
+    };
 }
 
 /* --------------------------------------------------------------------

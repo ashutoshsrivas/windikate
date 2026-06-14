@@ -12,7 +12,9 @@
  * below is used — keeps the app fully functional without any AI cost.
  * ===================================================================== */
 
-const bedrock = require('./bedrockClient');
+const bedrock  = require('./bedrockClient');
+const settings = require('./settings');
+const { DEFAULT_MODEL } = require('./modelRegistry');
 
 const TEMPLATES = {
     gross_margin: {
@@ -58,20 +60,40 @@ const TEMPLATES = {
 async function generateQuestions(deviations, opts = {}) {
     if (bedrock.isAvailable()) {
         try {
-            const ai = await generateWithBedrock(deviations, opts.context || {});
+            const modelId = await pickModelFor(opts.user);
+            const ai = await generateWithBedrock(
+                deviations,
+                opts.context || {},
+                { modelId, user_id: opts.user?.id || null, analysis_id: opts.analysis_id || null }
+            );
             if (Array.isArray(ai) && ai.length) return ai;
         } catch (err) {
             console.warn('[questionGenerator] Bedrock failed, falling back to templates:', err.message);
-            // Fall through to deterministic generator
         }
     }
     return generateWithTemplates(deviations);
 }
 
+/* Pick a model for this caller:
+ *   · if the user has allowed_models set and non-empty, first allowed
+ *   · else the global default_model setting
+ *   · else the registry's hard default
+ */
+async function pickModelFor(user) {
+    if (user && user.allowed_models) {
+        let allowed = user.allowed_models;
+        if (typeof allowed === 'string') {
+            try { allowed = JSON.parse(allowed); } catch { allowed = []; }
+        }
+        if (Array.isArray(allowed) && allowed.length) return allowed[0];
+    }
+    return (await settings.get('default_model')) || DEFAULT_MODEL;
+}
+
 /* ------------------------------------------------------------------ */
 /*  AI path · Claude on Bedrock                                       */
 /* ------------------------------------------------------------------ */
-async function generateWithBedrock(deviations, context) {
+async function generateWithBedrock(deviations, context, callOpts = {}) {
     if (!deviations || !deviations.length) return [];
 
     const SYSTEM = `You are a sharp early-stage VC analyst preparing for a founder meeting. \
@@ -102,7 +124,13 @@ Return ONLY a JSON array, no prose, no markdown fence. Shape:
   { "deviation_id": <id-or-null>, "text": "...", "category": "...", "priority": "critical|important|nice_to_know" }
 ]`;
 
-    const raw = await bedrock.invokeJSON(USER, { system: SYSTEM, temperature: 0.4, maxTokens: 2000 });
+    const raw = await bedrock.invokeJSON(USER, {
+        system: SYSTEM, temperature: 0.4, maxTokens: 2000,
+        modelId:     callOpts.modelId,
+        user_id:     callOpts.user_id,
+        analysis_id: callOpts.analysis_id,
+        service:     'questionGenerator'
+    });
     if (!Array.isArray(raw)) throw new Error('AI returned non-array');
 
     // Sanitise / coerce — never trust the model blindly

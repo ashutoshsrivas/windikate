@@ -9,7 +9,9 @@ async function authenticate(req, res, next) {
 
         const payload = jwt.verify(token, process.env.JWT_SECRET);
         const user = await queryOne(
-            'SELECT id, email, display_name, role, focus_areas, onboarded_at FROM users WHERE id = :id',
+            `SELECT id, email, display_name, role, focus_areas, onboarded_at,
+                    allowed_models, monthly_spend_cents, monthly_cap_cents
+               FROM users WHERE id = :id`,
             { id: payload.sub }
         );
         if (!user) return res.status(401).json({ error: 'Invalid token subject' });

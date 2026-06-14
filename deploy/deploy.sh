@@ -69,6 +69,11 @@ else
     log "4 · schema.sql unchanged · skipping"
 fi
 
+# ----- 4b: always run pending migrations (idempotent) ---------------
+log "4b · migrations"
+cd "$APP_DIR/analysis-app/backend"
+node db/migrate.js || { echo "  ✗ migration failed"; exit 1; }
+
 # ---------------------------------------------------------------------
 log "5 · pm2 reload"
 pm2 startOrReload "$APP_DIR/deploy/pm2-ecosystem.config.js" --update-env

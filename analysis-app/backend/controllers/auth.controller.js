@@ -16,7 +16,7 @@ async function register(req, res, next) {
             'INSERT INTO users (email, password_hash, display_name) VALUES (:email, :hash, :name)',
             { email, hash, name: display_name || null }
         );
-        const user = await queryOne('SELECT id, email, display_name, role, focus_areas, onboarded_at FROM users WHERE id = :id', { id });
+        const user = await queryOne('SELECT id, email, display_name, role, focus_areas, onboarded_at, allowed_models FROM users WHERE id = :id', { id });
         res.json({ token: signToken(user), user });
     } catch (err) { next(err); }
 }

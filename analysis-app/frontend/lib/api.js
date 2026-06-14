@@ -54,7 +54,18 @@ export const api = {
     createAnalysis: (formData) => request('/api/analyses', { method: 'POST', body: formData, isForm: true }),
     updateDeviation: (id, devId, body) => request(`/api/analyses/${id}/deviations/${devId}`, { method: 'PUT', body }),
     updateQuestion: (id, qId, body) => request(`/api/analyses/${id}/questions/${qId}`, { method: 'PUT', body }),
-    generateMemo: (id, body) => request(`/api/analyses/${id}/memo`, { method: 'POST', body })
+    generateMemo: (id, body) => request(`/api/analyses/${id}/memo`, { method: 'POST', body }),
+
+    // admin
+    adminOverview: () => request('/api/admin/overview'),
+    adminModels:   () => request('/api/admin/models'),
+    adminUsers:    () => request('/api/admin/users'),
+    adminCreateUser: (body) => request('/api/admin/users', { method: 'POST', body }),
+    adminPatchUser:  (id, body) => request(`/api/admin/users/${id}`, { method: 'PATCH', body }),
+    adminDeleteUser: (id) => request(`/api/admin/users/${id}`, { method: 'DELETE' }),
+    adminSettings:  () => request('/api/admin/settings'),
+    adminPutSettings: (body) => request('/api/admin/settings', { method: 'PUT', body }),
+    adminUsage: (days = 30) => request(`/api/admin/usage?days=${days}`)
 };
 
 export const STORAGE = { TOKEN_KEY };
