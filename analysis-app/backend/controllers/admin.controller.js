@@ -60,11 +60,13 @@ async function putSettings(req, res, next) {
         const ALLOWED = [
             'default_model', 'bedrock_enabled', 'monthly_cap_cents',
             'web_search_enabled', 'web_search_provider', 'web_search_ttl_days',
-            'serper_api_key'
+            'serper_api_key',
+            'samaj_persona_model', 'samaj_simulation_paused', 'samaj_apercept_size',
+            'model_fallback_chain'
         ];
         for (const [k, v] of Object.entries(req.body || {})) {
             if (!ALLOWED.includes(k)) continue;
-            if (k === 'default_model' && !getModel(v)) {
+            if ((k === 'default_model' || k === 'samaj_persona_model') && !getModel(v)) {
                 return res.status(400).json({ error: `unknown model: ${v}` });
             }
             await settings.set(k, v, req.user.id);

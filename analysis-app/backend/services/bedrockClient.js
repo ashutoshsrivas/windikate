@@ -23,6 +23,45 @@
 
 const { providerFor, DEFAULT_MODEL: REGISTRY_DEFAULT } = require('./modelRegistry');
 
+/* When the primary model returns 429 / throttle / quota-exceeded, the
+ * client transparently retries with the next model in this list. Each
+ * model has its own daily token quota on Bedrock, so a chain of cheap →
+ * mid-tier models means "AI offline" only happens when ALL of them are
+ * exhausted. Admins can override via settings.model_fallback_chain. */
+const DEFAULT_FALLBACK_CHAIN = [
+    'us.amazon.nova-micro-v1:0',                          // cheapest, $0.035/$0.14 per 1M
+    'us.amazon.nova-lite-v1:0',                           // $0.06/$0.24
+    'us.anthropic.claude-3-5-haiku-20241022-v1:0',        // $0.80/$4.00
+    'us.anthropic.claude-haiku-4-5-20250929-v1:0',        // $1.00/$5.00
+    'us.amazon.nova-pro-v1:0'                             // $0.80/$3.20 — heavier reasoning
+];
+
+function isQuotaError(err) {
+    if (!err) return false;
+    if (err.status === 429) return true;
+    if (err.code === 'ThrottlingException' || err.code === 'ServiceQuotaExceededException') return true;
+    const msg = String(err.message || '');
+    return /\b(429|too many|throttl|quota|rate.?limit|service unavailable|503)\b/i.test(msg);
+}
+
+/* Resolve the chain starting from `head`. Reads settings.model_fallback_chain
+ * if present (JSON array); otherwise uses DEFAULT_FALLBACK_CHAIN. The head
+ * model is moved to position 0 and de-duplicated. */
+async function resolveChain(head) {
+    let chain = DEFAULT_FALLBACK_CHAIN;
+    try {
+        const settings = require('./settings');
+        const fromAdmin = await settings.get('model_fallback_chain', null);
+        if (Array.isArray(fromAdmin) && fromAdmin.length) chain = fromAdmin;
+    } catch { /* settings unavailable — keep defaults */ }
+    const seen = new Set([head]);
+    const out = [head];
+    for (const m of chain) {
+        if (!seen.has(m)) { out.push(m); seen.add(m); }
+    }
+    return out;
+}
+
 const REGION     = process.env.AWS_REGION       || process.env.BEDROCK_REGION  || 'us-east-1';
 const MODEL_ID   = process.env.BEDROCK_MODEL_ID || REGISTRY_DEFAULT;
 const ENABLED    = String(process.env.BEDROCK_ENABLED || 'false').toLowerCase() === 'true';
@@ -62,16 +101,34 @@ async function invokeText(userPrompt, {
 } = {}) {
     if (!ENABLED) throw new BedrockDisabledError('BEDROCK_ENABLED is not true');
 
+    const chain = await resolveChain(modelId);
+    let lastErr;
+    for (const tryModel of chain) {
+        try {
+            return await _invokeTextOnce(userPrompt, {
+                system, maxTokens, temperature, modelId: tryModel,
+                user_id, analysis_id, service
+            });
+        } catch (err) {
+            lastErr = err;
+            if (!isQuotaError(err)) throw err;
+            console.warn(`[bedrock] ${tryModel} quota-exceeded (${err.status || err.code}) — trying next in chain`);
+        }
+    }
+    throw lastErr;
+}
+
+async function _invokeTextOnce(userPrompt, {
+    system, maxTokens, temperature, modelId, user_id, analysis_id, service
+}) {
     const provider = providerFor(modelId);
     const bearer = process.env.AWS_BEARER_TOKEN_BEDROCK;
-
     const start = Date.now();
     let lastErr;
     for (let attempt = 1; attempt <= 2; attempt++) {
         try {
             let result;
             if (provider === 'anthropic') {
-                /* Anthropic native payload via InvokeModel */
                 const payload = {
                     anthropic_version: 'bedrock-2023-05-31',
                     max_tokens: maxTokens,
@@ -83,13 +140,12 @@ async function invokeText(userPrompt, {
                     ? await invokeBedrockBearer(modelId, payload, '/invoke', parseAnthropicResponse)
                     : await invokeBedrockSdk(modelId, payload, parseAnthropicResponse);
             } else {
-                /* Nova (and any future Converse-only model) uses Converse */
-                result = await converse(
+                /* Use the single-shot Converse path (no chain — already in the wrapper above) */
+                result = await _converseOnce(
                     [{ role: 'user', content: userPrompt }],
                     { system, modelId, maxTokens, temperature }
                 );
             }
-
             if (!result.text) throw new Error('Empty content from Bedrock');
             await logUsage({
                 user_id, analysis_id, service, model_id: modelId,
@@ -101,7 +157,10 @@ async function invokeText(userPrompt, {
             return result.text;
         } catch (err) {
             lastErr = err;
-            if (attempt === 1 && /Throttl|ServiceUnavailable|Timeout|fetch failed|ECONN|ETIMEDOUT/i.test(err.name || err.message)) {
+            // 1 retry on transient network/timeout — quota errors bubble straight up
+            // so the fallback chain in invokeText can move to the next model.
+            if (attempt === 1 && !isQuotaError(err) &&
+                /Timeout|fetch failed|ECONN|ETIMEDOUT/i.test(err.name || err.message)) {
                 await new Promise(r => setTimeout(r, 800));
                 continue;
             }
@@ -132,6 +191,42 @@ async function converse(messages, {
 } = {}) {
     if (!ENABLED) throw new BedrockDisabledError('BEDROCK_ENABLED is not true');
 
+    const chain = await resolveChain(modelId);
+    let lastErr;
+    for (const tryModel of chain) {
+        try {
+            return await _converseOnce(messages, { system, modelId: tryModel, maxTokens, temperature });
+        } catch (err) {
+            lastErr = err;
+            if (!isQuotaError(err)) throw err;
+            console.warn(`[bedrock·converse] ${tryModel} quota-exceeded — trying next in chain`);
+        }
+    }
+    throw lastErr;
+}
+
+/* Single-shot converse — handles both Anthropic and Nova families.
+ * For Anthropic, we still use the native /invoke schema (Converse works
+ * too, but /invoke supports system + multi-turn equivalently and is what
+ * the existing prompts were tuned for). */
+async function _converseOnce(messages, { system, modelId, maxTokens, temperature }) {
+    const provider = providerFor(modelId);
+    const bearer = process.env.AWS_BEARER_TOKEN_BEDROCK;
+
+    if (provider === 'anthropic') {
+        const payload = {
+            anthropic_version: 'bedrock-2023-05-31',
+            max_tokens: maxTokens,
+            temperature,
+            system,
+            messages: messages.map(m => ({ role: m.role, content: m.content }))
+        };
+        return bearer
+            ? invokeBedrockBearer(modelId, payload, '/invoke', parseAnthropicResponse)
+            : invokeBedrockSdk(modelId, payload, parseAnthropicResponse);
+    }
+
+    /* Nova / generic Converse-API model */
     const payload = {
         messages: messages.map(m => ({
             role: m.role,
@@ -141,7 +236,6 @@ async function converse(messages, {
     };
     if (system) payload.system = [{ text: system }];
 
-    const bearer = process.env.AWS_BEARER_TOKEN_BEDROCK;
     return bearer
         ? invokeBedrockBearer(modelId, payload, '/converse', parseConverseResponse)
         : invokeConverseSdk(modelId, payload);
