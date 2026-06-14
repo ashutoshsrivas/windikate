@@ -52,7 +52,13 @@ function isAvailable() {
 
 /* --------------------------------------------------------------------
  * Core invoker. Returns the model's raw text response.
- * Retries once on transient throttling / timeout.
+ *
+ * Auth resolution — picks the first available path:
+ *   1) AWS_BEARER_TOKEN_BEDROCK · the new Bedrock API key (2025).
+ *      Uses native fetch + `Authorization: Bearer …`. No SDK needed.
+ *   2) SDK · classic SigV4 with IAM access key / role / shared creds.
+ *
+ * Retries once on transient errors.
  * ------------------------------------------------------------------ */
 async function invokeText(userPrompt, {
     system = '',
@@ -70,29 +76,20 @@ async function invokeText(userPrompt, {
         messages: [{ role: 'user', content: userPrompt }]
     };
 
-    const sdk = (_sdk = _sdk || require('@aws-sdk/client-bedrock-runtime'));
-    const cmd = new sdk.InvokeModelCommand({
-        modelId,
-        contentType: 'application/json',
-        accept: 'application/json',
-        body: JSON.stringify(payload)
-    });
+    const bearer = process.env.AWS_BEARER_TOKEN_BEDROCK;
+    const invoke = bearer
+        ? () => invokeViaBearer(modelId, payload, bearer)
+        : () => invokeViaSdk(modelId, payload);
 
     let lastErr;
     for (let attempt = 1; attempt <= 2; attempt++) {
         try {
-            const res = await client().send(cmd);
-            const body = JSON.parse(new TextDecoder().decode(res.body));
-            const text = (body.content || [])
-                .map(part => part.text)
-                .filter(Boolean)
-                .join('\n');
+            const text = await invoke();
             if (!text) throw new Error('Empty content from Bedrock');
             return text;
         } catch (err) {
             lastErr = err;
-            // Retry once on throttling / transient failures
-            if (attempt === 1 && /ThrottlingException|ServiceUnavailable|TimeoutError/i.test(err.name || err.message)) {
+            if (attempt === 1 && /Throttl|ServiceUnavailable|Timeout|fetch failed|ECONN|ETIMEDOUT/i.test(err.name || err.message)) {
                 await new Promise(r => setTimeout(r, 800));
                 continue;
             }
@@ -100,6 +97,42 @@ async function invokeText(userPrompt, {
         }
     }
     throw lastErr;
+}
+
+/* ----- Path 1 · bearer token via native fetch --------------------- */
+async function invokeViaBearer(modelId, payload, bearer) {
+    const url = `https://bedrock-runtime.${REGION}.amazonaws.com/model/${encodeURIComponent(modelId)}/invoke`;
+    const res = await fetch(url, {
+        method: 'POST',
+        headers: {
+            'Authorization': `Bearer ${bearer}`,
+            'Content-Type':  'application/json',
+            'Accept':        'application/json'
+        },
+        body: JSON.stringify(payload)
+    });
+    if (!res.ok) {
+        const errText = (await res.text()).slice(0, 300);
+        const err = new Error(`Bedrock ${res.status}: ${errText}`);
+        err.status = res.status;
+        throw err;
+    }
+    const body = await res.json();
+    return (body.content || []).map(p => p.text).filter(Boolean).join('\n');
+}
+
+/* ----- Path 2 · classic SDK (SigV4 / IAM) ------------------------- */
+async function invokeViaSdk(modelId, payload) {
+    if (!_sdk) _sdk = require('@aws-sdk/client-bedrock-runtime');
+    const cmd = new _sdk.InvokeModelCommand({
+        modelId,
+        contentType: 'application/json',
+        accept: 'application/json',
+        body: JSON.stringify(payload)
+    });
+    const res = await client().send(cmd);
+    const body = JSON.parse(new TextDecoder().decode(res.body));
+    return (body.content || []).map(p => p.text).filter(Boolean).join('\n');
 }
 
 /* --------------------------------------------------------------------
