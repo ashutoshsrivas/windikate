@@ -19,9 +19,9 @@ CREATE TABLE settings (
     CONSTRAINT fk_settings_user FOREIGN KEY (updated_by) REFERENCES users(id) ON DELETE SET NULL
 ) ENGINE=InnoDB;
 
-INSERT INTO settings (key_name, value) VALUES ('default_model', JSON_QUOTE('us.anthropic.claude-3-5-haiku-20241022-v1:0'));
-INSERT INTO settings (key_name, value) VALUES ('bedrock_enabled', CAST('true' AS JSON));
-INSERT INTO settings (key_name, value) VALUES ('monthly_cap_cents', CAST('5000' AS JSON));
+INSERT INTO settings (key_name, value) VALUES ('default_model',     '"us.anthropic.claude-3-5-haiku-20241022-v1:0"');
+INSERT INTO settings (key_name, value) VALUES ('bedrock_enabled',   'true');
+INSERT INTO settings (key_name, value) VALUES ('monthly_cap_cents', '5000');
 
 CREATE TABLE usage_events (
     id                BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
