@@ -52,7 +52,7 @@ export default function DashboardShell({ children }) {
                             </div>
                             <div className="text-xs leading-tight">
                                 <div className="font-medium">{user.display_name || user.email}</div>
-                                <div className="text-white/45">{prettyRole(user.role)}</div>
+                                <div className="text-white/45">{prettyRole(user.profession || user.role)}</div>
                             </div>
                         </div>
                         <button onClick={logout} className="text-sm text-white/60 hover:text-white px-3 py-1.5 rounded-lg hover:bg-white/5" aria-label="Log out">

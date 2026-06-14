@@ -16,7 +16,7 @@ async function register(req, res, next) {
             'INSERT INTO users (email, password_hash, display_name) VALUES (:email, :hash, :name)',
             { email, hash, name: display_name || null }
         );
-        const user = await queryOne('SELECT id, email, display_name, role, focus_areas, onboarded_at, allowed_models FROM users WHERE id = :id', { id });
+        const user = await queryOne('SELECT id, email, display_name, role, profession, focus_areas, onboarded_at, allowed_models FROM users WHERE id = :id', { id });
         res.json({ token: signToken(user), user });
     } catch (err) { next(err); }
 }
@@ -27,7 +27,7 @@ async function login(req, res, next) {
         if (!email || !password) return res.status(400).json({ error: 'email and password required' });
 
         const row = await queryOne(
-            'SELECT id, email, password_hash, display_name, role, focus_areas, onboarded_at FROM users WHERE email = :email',
+            'SELECT id, email, password_hash, display_name, role, profession, focus_areas, onboarded_at, allowed_models FROM users WHERE email = :email',
             { email }
         );
         if (!row) return res.status(401).json({ error: 'invalid credentials' });

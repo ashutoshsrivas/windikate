@@ -1,6 +1,10 @@
 const { queryOne, query, update } = require('../db/pool');
 
-const ALLOWED_ROLES = ['vc_analyst', 'investment_associate', 'incubator_manager', 'angel_investor'];
+// "Profession" was historically called "role" in the DB & onboarding API.
+// The 001 migration renamed the column to `profession` so the new top-level
+// `role` could hold admin/analyst. We keep accepting `role` from the
+// onboarding payload so the frontend doesn't need to change.
+const ALLOWED_PROFESSIONS = ['vc_analyst', 'investment_associate', 'incubator_manager', 'angel_investor'];
 const ALLOWED_FOCUS = ['b2b_saas','fintech','healthtech','deeptech','consumer','climate','startup_incubation','startup_acceleration'];
 
 async function me(req, res, next) {
@@ -15,9 +19,9 @@ async function me(req, res, next) {
 
 async function saveOnboarding(req, res, next) {
     try {
-        const { display_name, role, focus_areas, benchmarks } = req.body;
+        const { display_name, role: profession, focus_areas, benchmarks } = req.body;
 
-        if (role && !ALLOWED_ROLES.includes(role))
+        if (profession && !ALLOWED_PROFESSIONS.includes(profession))
             return res.status(400).json({ error: 'invalid role' });
         if (focus_areas && (!Array.isArray(focus_areas) || focus_areas.some(f => !ALLOWED_FOCUS.includes(f))))
             return res.status(400).json({ error: 'invalid focus_areas' });
@@ -25,14 +29,14 @@ async function saveOnboarding(req, res, next) {
         await update(
             `UPDATE users
                 SET display_name = COALESCE(:name, display_name),
-                    role         = COALESCE(:role, role),
+                    profession   = COALESCE(:prof, profession),
                     focus_areas  = COALESCE(:focus, focus_areas),
                     onboarded_at = COALESCE(onboarded_at, NOW())
               WHERE id = :id`,
             {
                 id: req.user.id,
                 name: display_name || null,
-                role: role || null,
+                prof: profession || null,
                 focus: focus_areas ? JSON.stringify(focus_areas) : null
             }
         );
@@ -55,9 +59,11 @@ async function saveOnboarding(req, res, next) {
         }
 
         const updated = await queryOne(
-            'SELECT id, email, display_name, role, focus_areas, onboarded_at FROM users WHERE id = :id',
+            'SELECT id, email, display_name, role, profession, focus_areas, onboarded_at FROM users WHERE id = :id',
             { id: req.user.id }
         );
+        // Frontend expects `role` to be the profession in the onboarding response
+        if (updated) { updated.role = updated.profession; }
         res.json({ user: updated });
     } catch (err) { next(err); }
 }

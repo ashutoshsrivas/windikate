@@ -36,12 +36,19 @@ async function main() {
         if (applied.has(version)) continue;
 
         process.stdout.write(`  ▸ ${version} `);
-        const sql = fs.readFileSync(path.join(MIGRATIONS_DIR, file), 'utf8');
+        const raw = fs.readFileSync(path.join(MIGRATIONS_DIR, file), 'utf8');
 
-        const statements = sql
-            .split(/;\s*(?:\r?\n|$)/)
+        // Strip line comments (-- …) line-by-line so trailing comments
+        // after a `;` don't confuse the splitter.
+        const cleaned = raw
+            .split('\n')
+            .map(line => line.replace(/--.*$/, ''))
+            .join('\n');
+
+        const statements = cleaned
+            .split(';')
             .map(s => s.trim())
-            .filter(s => s && !/^--/.test(s));
+            .filter(Boolean);
 
         const conn = await pool.getConnection();
         try {
