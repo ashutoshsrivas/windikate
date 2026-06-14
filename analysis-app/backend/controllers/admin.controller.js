@@ -32,6 +32,24 @@ async function getModels(req, res) {
 /* --------------------------------------------------------------------
  *  /api/admin/settings
  * ------------------------------------------------------------------ */
+/* POST /api/admin/settings/test-search · runs one live Serper query
+ * against the currently-saved key + returns the top result. Lets admins
+ * confirm the key works without having to upload a deck first. */
+async function testSearch(req, res, next) {
+    try {
+        const webSearch = require('../services/webSearch');
+        const q = (req.body && req.body.q) || 'SaaS Series A gross margin benchmark 2026';
+        const hit = await webSearch.search(q, { force: true });
+        if (!hit) {
+            return res.status(400).json({
+                ok: false,
+                error: 'Web search returned nothing. Check that the toggle is on and the API key is set.'
+            });
+        }
+        res.json({ ok: true, query: q, hit });
+    } catch (err) { next(err); }
+}
+
 async function getSettings(req, res, next) {
     try { res.json({ settings: maskSecrets(await settings.getAll()) }); }
     catch (err) { next(err); }
@@ -202,5 +220,6 @@ module.exports = {
     overview, getModels,
     getSettings, putSettings,
     listUsers, createUser, patchUser, deleteUser,
-    usageReport, usageEvents, usageFacets
+    usageReport, usageEvents, usageFacets,
+    testSearch
 };

@@ -65,6 +65,7 @@ export const api = {
     adminDeleteUser: (id) => request(`/api/admin/users/${id}`, { method: 'DELETE' }),
     adminSettings:  () => request('/api/admin/settings'),
     adminPutSettings: (body) => request('/api/admin/settings', { method: 'PUT', body }),
+    adminTestSearch:  (body = {}) => request('/api/admin/settings/test-search', { method: 'POST', body }),
     adminUsage: (days = 30) => request(`/api/admin/usage?days=${days}`),
     adminUsageEvents: (filters = {}) => {
         const qs = new URLSearchParams();

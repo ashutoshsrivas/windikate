@@ -9,8 +9,9 @@ router.use(authenticate, requireAdmin);
 router.get('/overview',  ctl.overview);
 router.get('/models',    ctl.getModels);
 
-router.get('/settings',  ctl.getSettings);
-router.put('/settings',  ctl.putSettings);
+router.get ('/settings',             ctl.getSettings);
+router.put ('/settings',             ctl.putSettings);
+router.post('/settings/test-search', ctl.testSearch);
 
 router.get('/users',     ctl.listUsers);
 router.post('/users',    ctl.createUser);
