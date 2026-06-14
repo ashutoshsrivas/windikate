@@ -28,12 +28,18 @@ const { providerFor, DEFAULT_MODEL: REGISTRY_DEFAULT } = require('./modelRegistr
  * model has its own daily token quota on Bedrock, so a chain of cheap →
  * mid-tier models means "AI offline" only happens when ALL of them are
  * exhausted. Admins can override via settings.model_fallback_chain. */
+/* Note: the Nova family shares a single account-wide daily token quota,
+ * so cycling micro → lite → pro doesn't actually buy you more headroom
+ * when you're throttled. The chain still includes them in case AWS
+ * splits the quotas later, but the primary fallback for real quota
+ * relief is the Claude family — which currently requires a one-time
+ * Anthropic Use-Case form submission on the Bedrock console. */
 const DEFAULT_FALLBACK_CHAIN = [
-    'us.amazon.nova-micro-v1:0',                          // cheapest, $0.035/$0.14 per 1M
-    'us.amazon.nova-lite-v1:0',                           // $0.06/$0.24
-    'us.anthropic.claude-3-5-haiku-20241022-v1:0',        // $0.80/$4.00
-    'us.anthropic.claude-haiku-4-5-20250929-v1:0',        // $1.00/$5.00
-    'us.amazon.nova-pro-v1:0'                             // $0.80/$3.20 — heavier reasoning
+    'us.amazon.nova-micro-v1:0',
+    'us.amazon.nova-lite-v1:0',
+    'us.amazon.nova-pro-v1:0',
+    'us.anthropic.claude-3-5-haiku-20241022-v1:0',
+    'us.anthropic.claude-sonnet-4-5-20250929-v1:0'
 ];
 
 function isQuotaError(err) {

@@ -360,8 +360,9 @@ async function recompilePersona(req, res, next) {
 
         if (!compiled.ai_used) {
             return res.status(503).json({
-                error: 'AI compilation unavailable right now',
-                fallback_reason: compiled.fallback_reason
+                error: humanizeBedrockError(compiled.fallback_reason, compiled.fallback_message),
+                fallback_reason: compiled.fallback_reason,
+                action_url: 'https://console.aws.amazon.com/bedrock/home#/modelaccess'
             });
         }
         const { map_x, map_y } = placeOnMap(compiled.traits);
@@ -467,7 +468,7 @@ No prose outside the JSON. No markdown fences.`;
         };
     } catch (err) {
         console.warn('[samaj] compilePersona AI failed → fallback:', err.message);
-        return fallbackCompile(payload, err.code || 'ai_error');
+        return fallbackCompile(payload, err.code || (err.status && String(err.status)) || 'ai_error', err.message);
     }
 }
 
@@ -483,15 +484,32 @@ function normalizeTraits(t = {}) {
     };
 }
 
-function fallbackCompile(payload, reason) {
+function fallbackCompile(payload, reason, message = null) {
     return {
         traits: normalizeTraits({}),
         archetype: 'explorer',
         headline: payload.headline || `${payload.display_name} — newly joined SAMAJ`,
         system_prompt_md: fallbackSystemPrompt(payload),
         ai_used: false,
-        fallback_reason: reason
+        fallback_reason: reason,
+        fallback_message: message
     };
+}
+
+function humanizeBedrockError(reason, message) {
+    const m = String(message || '');
+    if (/use case details have not been submitted/i.test(m)) {
+        return 'Claude model is gated behind the Anthropic Use-Case form. ' +
+               'Open AWS Bedrock console → Model access → fill the form (one time, takes a minute).';
+    }
+    if (/too many tokens per day|throttl|429/i.test(m) || reason === '429') {
+        return 'Bedrock daily token quota exhausted across the Nova family. ' +
+               'Resets at UTC midnight. To get past the cap, enable Claude in Bedrock console → Model access.';
+    }
+    if (/end of its life/i.test(m)) {
+        return 'Configured model has been retired by AWS. Pick a current model in /admin/settings.';
+    }
+    return 'AI compilation unavailable right now (reason: ' + (reason || 'unknown') + ').';
 }
 
 function fallbackSystemPrompt(payload) {

@@ -116,12 +116,27 @@ function buildSystem(persona) {
 
 function buildOfflineReply(persona, err) {
     const code = err?.code || (err?.status && String(err.status)) || 'unknown';
-    return [
-        `[${persona.display_name} · AI offline — ${code}]`,
-        'The model used to voice this twin is currently unavailable',
-        '(usually a daily quota reset is needed).',
-        'The conversation has been recorded; try again shortly.'
-    ].join(' ');
+    const msg  = String(err?.message || '');
+
+    // Detect the specific Bedrock failure mode and tell the operator
+    // exactly what to click — surfacing a useful message in the chat
+    // bubble is much better than a generic "AI offline".
+    if (/use case details have not been submitted/i.test(msg)) {
+        return `[${persona.display_name} · AI gated — Claude model use-case form not submitted yet] ` +
+               'Open the AWS Bedrock console → Model access → fill the one-time Anthropic Use-Case form. ' +
+               'Once approved (usually minutes), Claude takes over here and Vikas\'s real voice comes through.';
+    }
+    if (/too many tokens per day|throttl|429/i.test(msg) || code === '429') {
+        return `[${persona.display_name} · AI offline — daily token quota exhausted on Bedrock] ` +
+               'Nova family resets at UTC midnight. To remove the cap entirely, enable Claude (Bedrock console → ' +
+               'Model access → submit the Anthropic Use-Case form) — the fallback chain will use Claude automatically.';
+    }
+    if (/end of its life|deprecated/i.test(msg)) {
+        return `[${persona.display_name} · model retired] The configured model has been end-of-lifed by AWS. ` +
+               'Open /admin/settings and pick a current model in the SAMAJ persona dropdown.';
+    }
+    return `[${persona.display_name} · AI offline — ${code}] ` +
+           'The conversation has been recorded; try again shortly.';
 }
 
 module.exports = { reply, assertNotPaused };
