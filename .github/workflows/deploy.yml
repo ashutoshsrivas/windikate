@@ -1,0 +1,33 @@
+name: Deploy to EC2
+
+# Runs on every push to main. The workflow simply SSHes into the
+# server and runs deploy.sh — all the heavy lifting (npm install,
+# next build, pm2 reload) happens there. This way the workflow stays
+# tiny and the actual deploy logic is versioned with the rest of the
+# codebase.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: {}      # also runnable from the Actions UI
+
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: false  # don't kill an in-flight deploy
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: SSH to EC2 and run deploy.sh
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host:     ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key:      ${{ secrets.EC2_KEY }}
+          port:     22
+          script_stop: true
+          script: |
+            set -e
+            cd /var/www/windikate
+            bash deploy/deploy.sh main

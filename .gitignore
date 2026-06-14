@@ -28,3 +28,7 @@ Thumbs.db
 
 # Stray archive exports
 *.zip
+
+# SSH credentials — NEVER commit
+*.pem
+*.key
