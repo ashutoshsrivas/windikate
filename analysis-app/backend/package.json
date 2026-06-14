@@ -9,6 +9,7 @@
     "schema": "mysql -u $DB_USER -p$DB_PASSWORD $DB_NAME < db/schema.sql"
   },
   "dependencies": {
+    "@aws-sdk/client-bedrock-runtime": "^3.685.0",
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",

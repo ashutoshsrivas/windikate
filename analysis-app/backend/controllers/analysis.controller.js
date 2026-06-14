@@ -38,14 +38,17 @@ async function createAnalysis(req, res, next) {
         );
 
         // Run the pipeline synchronously (mocked services); in prod -> queue + worker.
-        await runPipeline(analysisId, userId, deckFile.originalname, aperceptEnabled);
+        await runPipeline(analysisId, userId, deckFile.originalname, aperceptEnabled, {
+            company_name: company || deckFile.originalname.replace(/\.pdf$/i, ''),
+            stage: stage || null
+        });
 
         const summary = await fetchAnalysis(analysisId, userId);
         res.json(summary);
     } catch (err) { next(err); }
 }
 
-async function runPipeline(analysisId, userId, deckFilename, aperceptEnabled) {
+async function runPipeline(analysisId, userId, deckFilename, aperceptEnabled, context = {}) {
     const benchmarks = await queryOne(
         'SELECT preseed_arr_min_inr, preseed_arr_max_inr, cac_ltv_ratio FROM user_benchmarks WHERE user_id = :id',
         { id: userId }
@@ -83,8 +86,11 @@ async function runPipeline(analysisId, userId, deckFilename, aperceptEnabled) {
         );
     }
 
-    // Step 4: questions
-    const questions = generateQuestions(devIds.map(d => ({ ...d, __id: d.id })));
+    // Step 4: questions  (AI when Bedrock is enabled, otherwise template fallback)
+    const questions = await generateQuestions(
+        devIds.map(d => ({ ...d, __id: d.id })),
+        { context }
+    );
     for (const q of questions) {
         await insert(
             `INSERT INTO questions (analysis_id, deviation_id, text, category, priority)

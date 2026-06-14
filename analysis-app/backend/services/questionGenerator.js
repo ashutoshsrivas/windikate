@@ -5,7 +5,14 @@
  * Builds the MEETING PREP QUESTIONNAIRE off the back of detected
  * deviations and missing data points, prioritised critical → important
  * → nice-to-know.
+ *
+ * When BEDROCK_ENABLED=true and AWS credentials are present, the heavy
+ * lifting is done by a Claude model on Bedrock (richer, deviation-aware
+ * questions). Otherwise the deterministic template-based generator
+ * below is used — keeps the app fully functional without any AI cost.
  * ===================================================================== */
+
+const bedrock = require('./bedrockClient');
 
 const TEMPLATES = {
     gross_margin: {
@@ -39,10 +46,81 @@ const TEMPLATES = {
 };
 
 /**
- * @param {Array} deviations
- * @returns {Array<{deviation_id:?number,text:string,category:string,priority:'critical'|'important'|'nice_to_know'}>}
+ * Entry point — picks AI or template engine depending on env.
+ * Always returns the same shape:
+ *   [{ deviation_id, text, category, priority }]
+ *
+ * @param {Array} deviations  output of deviationEngine.detectDeviations
+ * @param {Object} [opts]
+ * @param {Object} [opts.context]   extra context for the AI prompt
+ *                                  (e.g. company_name, stage, sector)
  */
-function generateQuestions(deviations) {
+async function generateQuestions(deviations, opts = {}) {
+    if (bedrock.isAvailable()) {
+        try {
+            const ai = await generateWithBedrock(deviations, opts.context || {});
+            if (Array.isArray(ai) && ai.length) return ai;
+        } catch (err) {
+            console.warn('[questionGenerator] Bedrock failed, falling back to templates:', err.message);
+            // Fall through to deterministic generator
+        }
+    }
+    return generateWithTemplates(deviations);
+}
+
+/* ------------------------------------------------------------------ */
+/*  AI path · Claude on Bedrock                                       */
+/* ------------------------------------------------------------------ */
+async function generateWithBedrock(deviations, context) {
+    if (!deviations || !deviations.length) return [];
+
+    const SYSTEM = `You are a sharp early-stage VC analyst preparing for a founder meeting. \
+For each deviation a deck has triggered, write the single most useful question to ask the founder — \
+specific, probing, anchored to the numbers in the deviation. \
+Prioritise: 'critical' for red severities and missing data, 'important' for yellow, 'nice_to_know' otherwise. \
+Categorise into one of: unit_economics, capital_efficiency, gtm, stage_fit, data_completeness, defensibility, judgment.`;
+
+    const devSummary = deviations.map((d, i) => ({
+        i,
+        id:          d.__id ?? null,
+        metric_key:  d.metric_key,
+        title:       d.title,
+        description: d.description,
+        severity:    d.severity,
+        benchmark:   d.benchmark_value,
+        source:      d.benchmark_label
+    }));
+
+    const USER = `Company: ${context.company_name || 'Unknown'}  ·  Stage: ${context.stage || 'Unknown'}
+
+Deviations (JSON):
+${JSON.stringify(devSummary, null, 2)}
+
+Generate one question per deviation (skip greens), plus two open-ended judgment questions at the end.
+Return ONLY a JSON array, no prose, no markdown fence. Shape:
+[
+  { "deviation_id": <id-or-null>, "text": "...", "category": "...", "priority": "critical|important|nice_to_know" }
+]`;
+
+    const raw = await bedrock.invokeJSON(USER, { system: SYSTEM, temperature: 0.4, maxTokens: 2000 });
+    if (!Array.isArray(raw)) throw new Error('AI returned non-array');
+
+    // Sanitise / coerce — never trust the model blindly
+    const allowedPriority = new Set(['critical', 'important', 'nice_to_know']);
+    return raw
+        .filter(q => q && typeof q.text === 'string' && q.text.length > 8)
+        .map(q => ({
+            deviation_id: Number.isInteger(q.deviation_id) ? q.deviation_id : null,
+            text:         String(q.text).slice(0, 600),
+            category:     typeof q.category === 'string' ? q.category.slice(0, 40) : 'judgment',
+            priority:     allowedPriority.has(q.priority) ? q.priority : 'important'
+        }));
+}
+
+/* ------------------------------------------------------------------ */
+/*  Mock path · deterministic template engine (fallback)              */
+/* ------------------------------------------------------------------ */
+function generateWithTemplates(deviations) {
     const out = [];
     for (const dev of deviations) {
         const tpl = TEMPLATES[dev.metric_key] || TEMPLATES._missing;
