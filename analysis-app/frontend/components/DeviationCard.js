@@ -2,11 +2,12 @@
 
 import { useState } from 'react';
 import { api } from '../lib/api';
+import DeckCite from './DeckCite';
 
 const SEV_LABEL = { red: 'Critical', yellow: 'Moderate', green: 'Validated' };
 const SEV_ICON  = { red: 'bi-exclamation-octagon-fill', yellow: 'bi-exclamation-triangle-fill', green: 'bi-check-circle-fill' };
 
-export default function DeviationCard({ analysisId, deviation, onChange, questions = [] }) {
+export default function DeviationCard({ analysisId, deviation, deckPath, onChange, questions = [] }) {
     const effective = deviation.edited_severity || deviation.severity;
     const [editing, setEditing] = useState(false);
     const [busy, setBusy] = useState(false);
@@ -35,10 +36,11 @@ export default function DeviationCard({ analysisId, deviation, onChange, questio
                     </span>
                     <div className="min-w-0">
                         <h3 className="font-semibold text-ink2 leading-tight">{deviation.title}</h3>
-                        <div className="flex items-center gap-2 mt-1 text-[11px] font-mono">
+                        <div className="flex items-center gap-2 mt-1 text-[11px] font-mono flex-wrap">
                             <span className={`px-2 py-0.5 rounded border sev-${effective}`}>{SEV_LABEL[effective].toUpperCase()}</span>
                             {deviation.edited_severity && <span className="text-ink2-faint">edited · OK standard</span>}
-                            {deviation.source_slide && <span className="text-ink2-faint">· {deviation.source_slide}</span>}
+                            {deviation.source_slide && <DeckCite deckPath={deckPath} slideRef={deviation.source_slide} compact />}
+                            {!deviation.source_slide && deckPath && <DeckCite deckPath={deckPath} compact />}
                         </div>
                     </div>
                 </div>

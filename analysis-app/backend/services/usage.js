@@ -131,4 +131,105 @@ async function overview() {
     };
 }
 
-module.exports = { record, dailySummary, byUser, overview };
+/* --------------------------------------------------------------------
+ *  Per-call audit feed for /admin/usage → "Recent calls" tab.
+ *
+ *  Supports filters: user_id, service, model_id, status (success|error),
+ *  free-text search (matches service/model/email/error_code), and a
+ *  time range (from/to as YYYY-MM-DD or ISO). Returns the page plus the
+ *  unfiltered totals so the UI can show "showing N of M".
+ *  ----------------------------------------------------------------- */
+async function listEvents({
+    limit   = 50,
+    offset  = 0,
+    user_id = null,
+    service = null,
+    model_id= null,
+    status  = null,    // 'success' | 'error' | null
+    search  = null,
+    from    = null,
+    to      = null
+} = {}) {
+    const params = {
+        lim: Math.min(Math.max(Number(limit) || 50, 1), 500),
+        off: Math.max(Number(offset) || 0, 0)
+    };
+    const where = [];
+    if (user_id)  { where.push('e.user_id = :user_id');         params.user_id  = Number(user_id); }
+    if (service)  { where.push('e.service = :service');         params.service  = service; }
+    if (model_id) { where.push('e.model_id = :model_id');       params.model_id = model_id; }
+    if (status === 'success') where.push('e.success = 1');
+    if (status === 'error')   where.push('e.success = 0');
+    if (from)     { where.push('e.created_at >= :from');        params.from = from; }
+    if (to)       { where.push('e.created_at <= :to');          params.to   = to; }
+    if (search)   {
+        where.push(`(
+            e.service   LIKE :q  OR
+            e.model_id  LIKE :q  OR
+            e.error_code LIKE :q OR
+            u.email     LIKE :q  OR
+            u.display_name LIKE :q
+        )`);
+        params.q = `%${search}%`;
+    }
+    const W = where.length ? `WHERE ${where.join(' AND ')}` : '';
+
+    const rows = await query(
+        `SELECT
+            e.id, e.user_id, u.email AS user_email, u.display_name AS user_name,
+            e.analysis_id, e.service, e.model_id,
+            e.input_tokens, e.output_tokens,
+            e.input_cost_cents, e.output_cost_cents, e.total_cost_cents,
+            e.success, e.error_code, e.duration_ms,
+            e.created_at
+         FROM usage_events e
+         LEFT JOIN users u ON u.id = e.user_id
+         ${W}
+         ORDER BY e.id DESC
+         LIMIT :lim OFFSET :off`,
+        params
+    );
+
+    const [totalRow] = await query(
+        `SELECT
+            COUNT(*) AS total,
+            COALESCE(SUM(e.total_cost_cents),0) AS sum_cents,
+            COALESCE(SUM(e.input_tokens),0)     AS sum_in,
+            COALESCE(SUM(e.output_tokens),0)    AS sum_out
+         FROM usage_events e
+         LEFT JOIN users u ON u.id = e.user_id
+         ${W}`,
+        params
+    );
+
+    return {
+        rows: rows.map(r => ({
+            ...r,
+            input_tokens:      Number(r.input_tokens || 0),
+            output_tokens:     Number(r.output_tokens || 0),
+            input_cost_cents:  Number(r.input_cost_cents || 0),
+            output_cost_cents: Number(r.output_cost_cents || 0),
+            total_cost_cents:  Number(r.total_cost_cents || 0),
+            duration_ms:       Number(r.duration_ms || 0),
+            success:           !!r.success
+        })),
+        total:     Number(totalRow.total),
+        sum_cents: Number(totalRow.sum_cents),
+        sum_in:    Number(totalRow.sum_in),
+        sum_out:   Number(totalRow.sum_out),
+        limit:     params.lim,
+        offset:    params.off
+    };
+}
+
+/* Distinct values for the filter UI's dropdowns. */
+async function eventFacets() {
+    const services = await query(`SELECT DISTINCT service FROM usage_events WHERE service IS NOT NULL ORDER BY service`);
+    const models   = await query(`SELECT DISTINCT model_id FROM usage_events WHERE model_id IS NOT NULL AND model_id != '' ORDER BY model_id`);
+    return {
+        services: services.map(s => s.service),
+        models:   models.map(m => m.model_id)
+    };
+}
+
+module.exports = { record, dailySummary, byUser, overview, listEvents, eventFacets };

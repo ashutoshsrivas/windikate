@@ -17,6 +17,8 @@ router.post('/users',    ctl.createUser);
 router.patch('/users/:id', ctl.patchUser);
 router.delete('/users/:id', ctl.deleteUser);
 
-router.get('/usage',     ctl.usageReport);
+router.get('/usage',        ctl.usageReport);
+router.get('/usage/events', ctl.usageEvents);
+router.get('/usage/facets', ctl.usageFacets);
 
 module.exports = router;

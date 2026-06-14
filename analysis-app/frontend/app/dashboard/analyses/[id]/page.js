@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import DeviationCard from '../../../../components/DeviationCard';
+import DeckCite from '../../../../components/DeckCite';
 
 export default function ReportTab() {
     const { id } = useParams();
@@ -16,7 +17,8 @@ export default function ReportTab() {
     }, []);
 
     if (!data) return null;
-    const { metrics, deviations, competitors, questions } = data;
+    const { analysis, metrics, deviations, competitors, questions } = data;
+    const deckPath = analysis?.deck_path;
 
     function patchDeviation(updated) {
         setData(prev => ({ ...prev, deviations: prev.deviations.map(d => d.id === updated.id ? updated : d) }));
@@ -40,8 +42,10 @@ export default function ReportTab() {
                             <div key={m.id} className={`rounded-xl border p-3 ${m.is_missing ? 'sev-red' : 'border-edge bg-surface'}`}>
                                 <div className="text-[10px] font-mono uppercase tracking-wider opacity-60">{humanize(m.metric_key)}</div>
                                 <div className="mt-1 font-semibold">{m.is_missing ? '— missing —' : (m.value_text || '—')}</div>
-                                <div className="mt-1.5 flex items-center justify-between text-[10px] opacity-60">
-                                    <span>{m.source_slide || '—'}</span>
+                                <div className="mt-1.5 flex items-center justify-between text-[10px] opacity-80">
+                                    {m.source_slide
+                                        ? <DeckCite deckPath={deckPath} slideRef={m.source_slide} compact />
+                                        : <span className="opacity-60">—</span>}
                                     {!m.is_missing && <span className={`px-1.5 py-0.5 rounded ${confColor(m.confidence)}`}>{m.confidence}</span>}
                                 </div>
                             </div>
@@ -58,6 +62,7 @@ export default function ReportTab() {
                                 key={d.id}
                                 analysisId={id}
                                 deviation={d}
+                                deckPath={deckPath}
                                 onChange={patchDeviation}
                                 questions={qByDev[d.id] || []}
                             />

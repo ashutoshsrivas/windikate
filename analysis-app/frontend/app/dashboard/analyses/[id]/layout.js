@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import ReportTabs from '../../../../components/ReportTabs';
 import { api } from '../../../../lib/api';
+import { deckUrl } from '../../../../lib/deckCite';
 
 /* Shared layout for every tab in an analysis.
  * Loads the analysis once, exposes it to child pages via window event +
@@ -30,6 +31,8 @@ export default function AnalysisLayout({ children }) {
     if (!data) return <div className="p-6 text-ink2-faint">Loading analysis…</div>;
 
     const a = data.analysis;
+    const deckHref = deckUrl(a.deck_path);
+    const finHref  = a.financials_path ? deckUrl(a.financials_path) : null;
     return (
         <div className="space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
@@ -42,6 +45,28 @@ export default function AnalysisLayout({ children }) {
                         <span>Analyzed {new Date(a.created_at).toLocaleString()}</span>
                         {a.apercept_enabled ? <><span>·</span><span className="text-brand-300">Apercept on</span></> : null}
                     </div>
+                    {/* Source documents — every report card cites back to these. */}
+                    {(deckHref || finHref) && (
+                        <div className="mt-3 flex flex-wrap items-center gap-2">
+                            {deckHref && (
+                                <a href={deckHref} target="_blank" rel="noreferrer"
+                                    className="inline-flex items-center gap-2 text-xs font-medium px-3 py-1.5 rounded-lg border border-edge bg-surface hover:border-brand-500/40 hover:text-brand-500 text-ink2-muted">
+                                    <i className="bi bi-file-earmark-pdf text-sm" />Open original deck
+                                    <i className="bi bi-arrow-up-right-square text-[10px] opacity-70" />
+                                </a>
+                            )}
+                            {finHref && (
+                                <a href={finHref} target="_blank" rel="noreferrer"
+                                    className="inline-flex items-center gap-2 text-xs font-medium px-3 py-1.5 rounded-lg border border-edge bg-surface hover:border-brand-500/40 hover:text-brand-500 text-ink2-muted">
+                                    <i className="bi bi-file-earmark-spreadsheet text-sm" />Financials
+                                    <i className="bi bi-arrow-up-right-square text-[10px] opacity-70" />
+                                </a>
+                            )}
+                            <span className="text-[11px] text-ink2-faint">
+                                · every finding below cites a slide — click the pill to open the source
+                            </span>
+                        </div>
+                    )}
                 </div>
                 <Summary deviations={data.deviations} />
             </div>

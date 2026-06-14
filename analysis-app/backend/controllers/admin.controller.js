@@ -142,6 +142,28 @@ async function deleteUser(req, res, next) {
 /* --------------------------------------------------------------------
  *  /api/admin/usage
  * ------------------------------------------------------------------ */
+async function usageEvents(req, res, next) {
+    try {
+        const payload = await usage.listEvents({
+            limit:    req.query.limit,
+            offset:   req.query.offset,
+            user_id:  req.query.user_id || null,
+            service:  req.query.service || null,
+            model_id: req.query.model_id || null,
+            status:   req.query.status   || null,
+            search:   req.query.q        || null,
+            from:     req.query.from     || null,
+            to:       req.query.to       || null
+        });
+        res.json(payload);
+    } catch (err) { next(err); }
+}
+
+async function usageFacets(req, res, next) {
+    try { res.json(await usage.eventFacets()); }
+    catch (err) { next(err); }
+}
+
 async function usageReport(req, res, next) {
     try {
         const days = Math.min(Number(req.query.days) || 30, 90);
@@ -167,5 +189,5 @@ module.exports = {
     overview, getModels,
     getSettings, putSettings,
     listUsers, createUser, patchUser, deleteUser,
-    usageReport
+    usageReport, usageEvents, usageFacets
 };

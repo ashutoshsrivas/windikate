@@ -66,6 +66,15 @@ export const api = {
     adminSettings:  () => request('/api/admin/settings'),
     adminPutSettings: (body) => request('/api/admin/settings', { method: 'PUT', body }),
     adminUsage: (days = 30) => request(`/api/admin/usage?days=${days}`),
+    adminUsageEvents: (filters = {}) => {
+        const qs = new URLSearchParams();
+        Object.entries(filters).forEach(([k, v]) => {
+            if (v !== null && v !== undefined && v !== '') qs.set(k, v);
+        });
+        const s = qs.toString();
+        return request(`/api/admin/usage/events${s ? `?${s}` : ''}`);
+    },
+    adminUsageFacets: () => request('/api/admin/usage/facets'),
 
     // SAMAJ — admin
     samajListInvites:  () => request('/api/admin/personas/invites'),
