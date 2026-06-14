@@ -99,17 +99,28 @@ function listModels() {
     return Object.entries(MODELS).map(([id, m]) => ({ id, ...m }));
 }
 
+/* All registry keys carry the 'us.' prefix; live calls can come in
+ * with eu./apac. variants too. Strip and re-add 'us.' for the lookup. */
+function canonicalKey(id) {
+    if (!id) return id;
+    const stripped = String(id).replace(/^(us|eu|apac)\./, '');
+    return 'us.' + stripped;
+}
+
 function getModel(id) {
-    return MODELS[id] ? { id, ...MODELS[id] } : null;
+    const key = canonicalKey(id);
+    return MODELS[key] ? { id, ...MODELS[key] } : null;
 }
 
 function providerFor(modelId) {
-    return (MODELS[modelId] || MODELS[DEFAULT_MODEL]).provider;
+    const key = canonicalKey(modelId);
+    return (MODELS[key] || MODELS[DEFAULT_MODEL]).provider;
 }
 
 /* Returns cost in **integer cents** (so we can sum without float drift). */
 function calcCostCents(modelId, inputTokens, outputTokens) {
-    const m = MODELS[modelId] || MODELS[DEFAULT_MODEL];
+    const key = canonicalKey(modelId);
+    const m = MODELS[key] || MODELS[DEFAULT_MODEL];
     const inputDollars  = (inputTokens  / 1_000_000) * m.inputPer1M;
     const outputDollars = (outputTokens / 1_000_000) * m.outputPer1M;
     return {

@@ -69,6 +69,29 @@ async function resolveChain(head) {
 }
 
 const REGION     = process.env.AWS_REGION       || process.env.BEDROCK_REGION  || 'us-east-1';
+
+/* Cross-region inference profiles use a region-family prefix:
+ *   us.*    →  us-east-1 / us-west-2          (shared quota)
+ *   eu.*    →  eu-west-1 / eu-central-1 …     (shared quota)
+ *   apac.*  →  ap-south-1 / ap-northeast-1 …  (shared quota)
+ *
+ * Config files keep models as 'us.amazon.nova-micro-v1:0' (the default in
+ * the registry). At call time we rewrite the prefix to match whatever
+ * AWS_REGION the box is running in. That way the same modelRegistry,
+ * settings rows, and fallback chain work in every region — switching
+ * regions is just an .env change. */
+function regionPrefix(region) {
+    if (!region) return 'us.';
+    if (region.startsWith('eu-')) return 'eu.';
+    if (region.startsWith('ap-')) return 'apac.';
+    return 'us.';
+}
+function normalizeModelId(modelId, region = REGION) {
+    if (!modelId) return modelId;
+    // Strip any leading region prefix and re-apply for the current region.
+    const stripped = String(modelId).replace(/^(us|eu|apac)\./, '');
+    return regionPrefix(region) + stripped;
+}
 const MODEL_ID   = process.env.BEDROCK_MODEL_ID || REGISTRY_DEFAULT;
 const ENABLED    = String(process.env.BEDROCK_ENABLED || 'false').toLowerCase() === 'true';
 const MAX_TOKENS = Number(process.env.BEDROCK_MAX_TOKENS) || 1600;
@@ -127,6 +150,7 @@ async function invokeText(userPrompt, {
 async function _invokeTextOnce(userPrompt, {
     system, maxTokens, temperature, modelId, user_id, analysis_id, service
 }) {
+    modelId = normalizeModelId(modelId);   // remap us./eu./apac. for current region
     const provider = providerFor(modelId);
     const bearer = process.env.AWS_BEARER_TOKEN_BEDROCK;
     const start = Date.now();
@@ -216,6 +240,7 @@ async function converse(messages, {
  * too, but /invoke supports system + multi-turn equivalently and is what
  * the existing prompts were tuned for). */
 async function _converseOnce(messages, { system, modelId, maxTokens, temperature }) {
+    modelId = normalizeModelId(modelId);   // remap us./eu./apac. for current region
     const provider = providerFor(modelId);
     const bearer = process.env.AWS_BEARER_TOKEN_BEDROCK;
 
