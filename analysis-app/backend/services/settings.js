@@ -36,9 +36,12 @@ async function get(key, fallback = null) {
 }
 
 async function set(key, value, updatedBy = null) {
+    /* MariaDB 10.4 (our prod) rejects CAST(? AS JSON); the JSON column is a
+     * LONGTEXT alias and accepts a valid JSON string verbatim, so we bind
+     * the stringified value directly. */
     await query(
         `INSERT INTO settings (key_name, value, updated_by)
-         VALUES (:k, CAST(:v AS JSON), :u)
+         VALUES (:k, :v, :u)
          ON DUPLICATE KEY UPDATE value = VALUES(value), updated_by = VALUES(updated_by)`,
         { k: key, v: JSON.stringify(value), u: updatedBy }
     );
