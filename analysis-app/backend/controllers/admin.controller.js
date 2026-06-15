@@ -32,6 +32,25 @@ async function getModels(req, res) {
 /* --------------------------------------------------------------------
  *  /api/admin/settings
  * ------------------------------------------------------------------ */
+/* POST /api/admin/settings/test-gemini · one-shot call against the
+ * saved Google key to confirm it works. */
+async function testGemini(req, res, next) {
+    try {
+        const gemini = require('../services/geminiClient');
+        if (!(await gemini.isAvailable())) {
+            return res.status(400).json({ ok: false, error: 'No Google API key saved yet.' });
+        }
+        const modelId = (req.body && req.body.modelId) || 'google.gemini-1.5-flash';
+        const text = await gemini.invokeText(
+            'Say "hello from Gemini" in exactly five words.',
+            { modelId, maxTokens: 40, temperature: 0.1, service: 'admin.test_gemini' }
+        );
+        res.json({ ok: true, modelId, reply: text });
+    } catch (err) {
+        res.status(400).json({ ok: false, error: err.message });
+    }
+}
+
 /* POST /api/admin/settings/test-search · runs one live Serper query
  * against the currently-saved key + returns the top result. Lets admins
  * confirm the key works without having to upload a deck first. */
@@ -60,7 +79,7 @@ async function putSettings(req, res, next) {
         const ALLOWED = [
             'default_model', 'bedrock_enabled', 'monthly_cap_cents',
             'web_search_enabled', 'web_search_provider', 'web_search_ttl_days',
-            'serper_api_key',
+            'serper_api_key', 'google_api_key',
             'samaj_persona_model', 'samaj_simulation_paused', 'samaj_apercept_size',
             'model_fallback_chain'
         ];
@@ -77,9 +96,12 @@ async function putSettings(req, res, next) {
 
 function maskSecrets(s) {
     /* Never echo back the raw key — admins only need to know it's set. */
-    if (s && typeof s === 'object' && s.serper_api_key) {
-        const v = String(s.serper_api_key);
-        s.serper_api_key = v.length > 8 ? v.slice(0, 4) + '••••' + v.slice(-4) : '••••';
+    if (!s || typeof s !== 'object') return s;
+    for (const k of ['serper_api_key', 'google_api_key']) {
+        if (s[k]) {
+            const v = String(s[k]);
+            s[k] = v.length > 8 ? v.slice(0, 4) + '••••' + v.slice(-4) : '••••';
+        }
     }
     return s;
 }
@@ -223,5 +245,5 @@ module.exports = {
     getSettings, putSettings,
     listUsers, createUser, patchUser, deleteUser,
     usageReport, usageEvents, usageFacets,
-    testSearch
+    testSearch, testGemini
 };

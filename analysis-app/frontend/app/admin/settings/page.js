@@ -17,12 +17,19 @@ export default function AdminSettings() {
     const [testing, setTesting]         = useState(false);
     const [testResult, setTestResult]   = useState(null);
 
+    // ─── Google API key — Bedrock fallback when daily quota is hit
+    const [googleKey, setGoogleKey]       = useState('');
+    const [showGoogleKey, setShowGoogleKey] = useState(false);
+    const [savingGoogle, setSavingGoogle] = useState(false);
+    const [testingGemini, setTestingGemini] = useState(false);
+    const [geminiResult, setGeminiResult] = useState(null);
+
     async function saveSerperKey() {
         if (!serperKey.trim()) return;
         setSavingKey(true);
         try {
             await save({ serper_api_key: serperKey.trim() });
-            setSerperKey('');                 // clear from DOM
+            setSerperKey('');
         } finally { setSavingKey(false); }
     }
     async function runTest() {
@@ -33,6 +40,23 @@ export default function AdminSettings() {
         } catch (e) {
             setTestResult({ ok: false, error: e.body?.error || e.message });
         } finally { setTesting(false); }
+    }
+    async function saveGoogleKey() {
+        if (!googleKey.trim()) return;
+        setSavingGoogle(true);
+        try {
+            await save({ google_api_key: googleKey.trim() });
+            setGoogleKey('');
+        } finally { setSavingGoogle(false); }
+    }
+    async function runGeminiTest() {
+        setTestingGemini(true); setGeminiResult(null);
+        try {
+            const res = await api.adminTestGemini({});
+            setGeminiResult({ ok: true, ...res });
+        } catch (e) {
+            setGeminiResult({ ok: false, error: e.body?.error || e.message });
+        } finally { setTestingGemini(false); }
     }
 
     useEffect(() => {
@@ -74,6 +98,72 @@ export default function AdminSettings() {
                         <div className="text-xs text-ink2-muted">Currently: <span className={s.bedrock_enabled ? 'text-emerald-400' : 'text-rose-400'}>{s.bedrock_enabled ? 'ON' : 'OFF'}</span></div>
                     </div>
                 </label>
+            </section>
+
+            <section>
+                <h2 className="text-lg font-semibold mb-1">Google Gemini / Gemma <span className="text-xs font-mono uppercase tracking-wider text-brand-500 ml-1">fallback when Bedrock is throttled</span></h2>
+                <p className="text-ink2-muted text-sm mb-4">
+                    Free tier: <strong>1,500 requests/day</strong>, no credit card. Get a key in 60 seconds at <a className="text-brand-500 hover:underline" href="https://aistudio.google.com/apikey" target="_blank" rel="noreferrer">aistudio.google.com/apikey</a>.
+                    {' '}Once saved, the fallback chain uses Gemini Flash / Gemma 3 automatically the moment Bedrock returns 429.
+                </p>
+                <div>
+                    <label className="block text-xs font-mono uppercase tracking-wider text-ink2-faint mb-1.5">
+                        Google API key
+                        {s.google_api_key && (
+                            <span className="ml-2 normal-case font-sans text-ink2-muted">
+                                · saved as <span className="font-mono">{s.google_api_key}</span>
+                            </span>
+                        )}
+                    </label>
+                    <div className="flex items-stretch gap-2">
+                        <div className="relative flex-1">
+                            <input
+                                type="text"
+                                value={googleKey}
+                                onChange={e => setGoogleKey(e.target.value)}
+                                onPaste={e => {
+                                    const txt = (e.clipboardData || window.clipboardData)?.getData('text');
+                                    if (txt) { e.preventDefault(); setGoogleKey(txt.trim()); }
+                                }}
+                                onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); saveGoogleKey(); } }}
+                                placeholder={s.google_api_key ? 'paste a new key to replace the saved one' : 'paste your AIza… key here'}
+                                autoComplete="off" spellCheck={false}
+                                className="field font-mono text-xs pr-10"
+                                style={!showGoogleKey && googleKey ? { WebkitTextSecurity: 'disc' } : undefined}
+                            />
+                            {googleKey && (
+                                <button type="button" onClick={() => setShowGoogleKey(v => !v)}
+                                    className="absolute right-2 top-1/2 -translate-y-1/2 text-ink2-muted hover:text-ink2 p-1">
+                                    <i className={`bi ${showGoogleKey ? 'bi-eye-slash' : 'bi-eye'} text-sm`} />
+                                </button>
+                            )}
+                        </div>
+                        <button onClick={saveGoogleKey} disabled={!googleKey.trim() || savingGoogle}
+                            className="px-4 py-2 rounded-xl bg-brand-600 hover:bg-brand-500 text-white text-sm font-medium disabled:opacity-50 shrink-0">
+                            {savingGoogle ? 'Saving…' : (s.google_api_key ? 'Replace key' : 'Save key')}
+                        </button>
+                        <button onClick={runGeminiTest} disabled={testingGemini || (!s.google_api_key && !googleKey.trim())}
+                            title="Run one live Gemini Flash call against the saved key"
+                            className="px-4 py-2 rounded-xl border border-edge bg-surface hover:bg-surface-raised text-sm font-medium disabled:opacity-50 shrink-0">
+                            {testingGemini ? 'Testing…' : 'Test'}
+                        </button>
+                    </div>
+                    {geminiResult && (
+                        <div className={`mt-3 rounded-lg border px-3 py-2.5 text-xs
+                            ${geminiResult.ok
+                                ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300'
+                                : 'border-rose-500/30 bg-rose-500/10 text-rose-700 dark:text-rose-300'}`}>
+                            {geminiResult.ok ? (
+                                <>
+                                    <div className="font-medium flex items-center gap-2"><i className="bi bi-check-circle-fill" />Gemini works · live reply on {geminiResult.modelId}</div>
+                                    <div className="mt-1 italic">"{geminiResult.reply}"</div>
+                                </>
+                            ) : (
+                                <><i className="bi bi-x-circle-fill mr-1.5" /><strong>Failed:</strong> {geminiResult.error}</>
+                            )}
+                        </div>
+                    )}
+                </div>
             </section>
 
             <section>

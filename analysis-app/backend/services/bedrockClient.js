@@ -22,6 +22,7 @@
  * ===================================================================== */
 
 const { providerFor, DEFAULT_MODEL: REGISTRY_DEFAULT } = require('./modelRegistry');
+const gemini = require('./geminiClient');
 
 /* When the primary model returns 429 / throttle / quota-exceeded, the
  * client transparently retries with the next model in this list. Each
@@ -35,19 +36,26 @@ const { providerFor, DEFAULT_MODEL: REGISTRY_DEFAULT } = require('./modelRegistr
  * relief is the Claude family — which currently requires a one-time
  * Anthropic Use-Case form submission on the Bedrock console. */
 const DEFAULT_FALLBACK_CHAIN = [
-    'us.amazon.nova-micro-v1:0',
+    'us.amazon.nova-micro-v1:0',                          // cheapest Bedrock
     'us.amazon.nova-lite-v1:0',
     'us.amazon.nova-pro-v1:0',
     'us.anthropic.claude-3-5-haiku-20241022-v1:0',
-    'us.anthropic.claude-sonnet-4-5-20250929-v1:0'
+    'us.anthropic.claude-sonnet-4-5-20250929-v1:0',
+    // ─── When all Bedrock quotas are exhausted, Google's free tier
+    //     takes over (1500 req/day, no card). Skipped silently if no
+    //     google_api_key is configured.
+    'google.gemini-2.0-flash',
+    'google.gemini-1.5-flash',
+    'google.gemma-3-27b-it'
 ];
 
 function isQuotaError(err) {
     if (!err) return false;
     if (err.status === 429) return true;
     if (err.code === 'ThrottlingException' || err.code === 'ServiceQuotaExceededException') return true;
+    if (err.code === 'GEMINI_NO_KEY') return true;   // skip Gemini in chain if no key — treat as soft-quota
     const msg = String(err.message || '');
-    return /\b(429|too many|throttl|quota|rate.?limit|service unavailable|503)\b/i.test(msg);
+    return /\b(429|too many|throttl|quota|rate.?limit|service unavailable|503|RESOURCE_EXHAUSTED|API key not configured)\b/i.test(msg);
 }
 
 /* Resolve the chain starting from `head`. Reads settings.model_fallback_chain
@@ -150,6 +158,16 @@ async function invokeText(userPrompt, {
 async function _invokeTextOnce(userPrompt, {
     system, maxTokens, temperature, modelId, user_id, analysis_id, service
 }) {
+    /* Provider dispatch — Google models go to geminiClient; everything
+     * else is Bedrock. We delegate BEFORE the region-prefix rewrite so
+     * google.* IDs don't get clobbered. */
+    const earlyProvider = providerFor(modelId);
+    if (earlyProvider === 'google') {
+        return gemini.invokeText(userPrompt, {
+            system, maxTokens, temperature, modelId, user_id, analysis_id, service
+        });
+    }
+
     modelId = normalizeModelId(modelId);   // remap us./eu./apac. for current region
     const provider = providerFor(modelId);
     const bearer = process.env.AWS_BEARER_TOKEN_BEDROCK;
@@ -240,6 +258,12 @@ async function converse(messages, {
  * too, but /invoke supports system + multi-turn equivalently and is what
  * the existing prompts were tuned for). */
 async function _converseOnce(messages, { system, modelId, maxTokens, temperature }) {
+    /* Provider dispatch — Google before any region rewrite. */
+    const earlyProvider = providerFor(modelId);
+    if (earlyProvider === 'google') {
+        return gemini.converse(messages, { system, modelId, maxTokens, temperature });
+    }
+
     modelId = normalizeModelId(modelId);   // remap us./eu./apac. for current region
     const provider = providerFor(modelId);
     const bearer = process.env.AWS_BEARER_TOKEN_BEDROCK;

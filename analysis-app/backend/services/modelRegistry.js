@@ -89,6 +89,40 @@ const MODELS = {
         outputPer1M: 15.00,
         context:  200000,
         good_for: 'Best balance. Recommended for memo generation when budget allows.'
+    },
+
+    // ─── Google Gemini & Gemma — non-Bedrock provider ──────────────────
+    // Free tier: 1500 req/day, no credit card required. Get a key at
+    // https://aistudio.google.com — paste into /admin/settings.
+    'google.gemini-2.0-flash': {
+        label:    'Gemini 2.0 Flash',
+        provider: 'google',
+        tier:     'budget',
+        speed:    'very fast',
+        inputPer1M:  0.10,
+        outputPer1M: 0.40,
+        context:  1000000,
+        good_for: 'Free 1500/day on Google AI Studio. Use when Bedrock is throttled. 1M context, multimodal.'
+    },
+    'google.gemini-1.5-flash': {
+        label:    'Gemini 1.5 Flash',
+        provider: 'google',
+        tier:     'budget',
+        speed:    'very fast',
+        inputPer1M:  0.075,
+        outputPer1M: 0.30,
+        context:  1000000,
+        good_for: 'Cheaper, stable Gemini. Free tier identical to 2.0.'
+    },
+    'google.gemma-3-27b-it': {
+        label:    'Gemma 3 27B',
+        provider: 'google',
+        tier:     'cheap',
+        speed:    'fast',
+        inputPer1M:  0.0,
+        outputPer1M: 0.0,
+        context:  128000,
+        good_for: 'Google\'s open-weight model. Free on AI Studio. Smaller than Gemini Flash but no usage cost.'
     }
 };
 
@@ -99,10 +133,14 @@ function listModels() {
     return Object.entries(MODELS).map(([id, m]) => ({ id, ...m }));
 }
 
-/* All registry keys carry the 'us.' prefix; live calls can come in
- * with eu./apac. variants too. Strip and re-add 'us.' for the lookup. */
+/* Most registry keys carry the 'us.' prefix; live Bedrock calls can come
+ * in with eu./apac. variants too — strip and re-add 'us.' for the lookup.
+ * Non-Bedrock providers (google.*) keep their own prefix and don't get
+ * rewritten. */
 function canonicalKey(id) {
     if (!id) return id;
+    if (/^google\./.test(id))    return id;
+    if (/^(openai|groq)\./.test(id)) return id;
     const stripped = String(id).replace(/^(us|eu|apac)\./, '');
     return 'us.' + stripped;
 }

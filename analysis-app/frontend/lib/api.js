@@ -66,6 +66,7 @@ export const api = {
     adminSettings:  () => request('/api/admin/settings'),
     adminPutSettings: (body) => request('/api/admin/settings', { method: 'PUT', body }),
     adminTestSearch:  (body = {}) => request('/api/admin/settings/test-search', { method: 'POST', body }),
+    adminTestGemini:  (body = {}) => request('/api/admin/settings/test-gemini', { method: 'POST', body }),
     adminUsage: (days = 30) => request(`/api/admin/usage?days=${days}`),
     adminUsageEvents: (filters = {}) => {
         const qs = new URLSearchParams();
